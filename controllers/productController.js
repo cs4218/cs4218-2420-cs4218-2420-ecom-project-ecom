@@ -1,11 +1,11 @@
-import productModel from "../models/productModel.js";
 import categoryModel from "../models/categoryModel.js";
 import orderModel from "../models/orderModel.js";
+import productModel from "../models/productModel.js";
 
-import fs from "fs";
-import slugify from "slugify";
 import braintree from "braintree";
 import dotenv from "dotenv";
+import fs from "fs";
+import slugify from "slugify";
 
 dotenv.config();
 
@@ -318,7 +318,7 @@ export const productCategoryController = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    res.status(400).send({
+    res.status(500).send({
       success: false,
       error,
       message: "Error While Getting products",

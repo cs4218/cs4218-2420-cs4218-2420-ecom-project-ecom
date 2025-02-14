@@ -1,5 +1,5 @@
-import categoryModel from "../models/categoryModel.js";
 import slugify from "slugify";
+import categoryModel from "../models/categoryModel.js";
 export const createCategoryController = async (req, res) => {
   try {
     const { name } = req.body;
@@ -82,7 +82,7 @@ export const singleCategoryController = async (req, res) => {
     const category = await categoryModel.findOne({ slug: req.params.slug });
     res.status(200).send({
       success: true,
-      message: "Get SIngle Category SUccessfully",
+      message: "Get Single Category Successfully",
       category,
     });
   } catch (error) {
