@@ -1,6 +1,12 @@
 import slugify from "slugify";
 import categoryModel from "../models/categoryModel";
-import { categoryControlller, createCategoryController, deleteCategoryCOntroller, singleCategoryController, updateCategoryController } from "./categoryController";
+import {
+  categoryControlller,
+  createCategoryController,
+  deleteCategoryCOntroller,
+  singleCategoryController,
+  updateCategoryController
+} from "./categoryController";
 
 const internalError = new Error("Mock internal error");
 
