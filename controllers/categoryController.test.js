@@ -56,7 +56,7 @@ describe('createCategoryController', () => {
     expect(categoryModel.create).not.toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.send).toHaveBeenCalledWith({
-      success: true,
+      success: false,
       message: "Category Already Exisits",
     });
   });
@@ -137,6 +137,18 @@ describe('updateCategoryController', () => {
     expect(categoryModel.findByIdAndUpdate).not.toHaveBeenCalled();
     expect(res.status).toBeCalledWith(400);
     expect(res.send).toBeCalledWith({ message: "Name is required" });
+  });
+
+  it('should return 404 for non-existent category', async () => {
+    categoryModel.findByIdAndUpdate.mockResolvedValue(null);
+
+    await updateCategoryController(req, res);
+
+    expect(res.status).toBeCalledWith(404);
+    expect(res.send).toBeCalledWith({
+      success: false,
+      message: "Category does not exist",
+    });
   });
 
   it('should return 500 for internal server error', async () => {
