@@ -60,6 +60,19 @@ describe('productCategoryController', () => {
       products: mockProducts
     });
   });
+
+  it('should return 404 when category does not exist', async () => {
+    categoryModel.findOne = jest.fn().mockResolvedValue(null);
+
+    await productCategoryController(req, res);
+
+    expect(categoryModel.findOne).toBeCalledWith({ slug: testSlug });
+    expect(res.status).toBeCalledWith(404);
+    expect(res.send).toBeCalledWith({
+      success: false,
+      message: "Category does not exist",
+    });
+  })
 });
 
 describe('getSingleProductController', () => {

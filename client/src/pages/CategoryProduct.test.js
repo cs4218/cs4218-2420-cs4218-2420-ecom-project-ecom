@@ -2,6 +2,7 @@ import '@testing-library/jest-dom/extend-expect';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import axios from "axios";
 import React from 'react';
+import toast from "react-hot-toast";
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 import CategoryProduct from './CategoryProduct';
@@ -9,6 +10,8 @@ import CategoryProduct from './CategoryProduct';
 const mockNavigate = jest.fn();
 
 jest.mock('axios');
+
+jest.mock("react-hot-toast");
 
 jest.mock('../context/auth', () => ({
   useAuth: jest.fn(() => [null, jest.fn()]) // Mock useAuth hook to return null state and a mock function for setAuth
@@ -99,18 +102,28 @@ describe('CategoryProduct Component', () => {
     expect(mockNavigate).toHaveBeenCalledWith(`/product/${testProductSlug}`);
   });
 
+  it('redirects users on invalid category', async () => {
+    const testCategorySlug = 'invalidCategory';
+    axios.get.mockRejectedValue({
+      response: { status: 404 }
+    });
+
+    renderComponent(testCategorySlug);
+  
+    await waitFor(() => {
+      expect(mockNavigate).toBeCalled();
+    })
+  });
+
   it('handles API errors gracefully', async () => {
     const apiError = new Error('Mock API Error');
     const testCategorySlug = 'testCategory';
-    const logSpy = jest
-      .spyOn(console, 'log')
-      .mockImplementation(() => {}); // silence log outputs in test
     axios.get.mockRejectedValue(apiError);
 
     renderComponent(testCategorySlug);
 
     await waitFor(() => {
-      expect(logSpy).toHaveBeenCalledWith(apiError);
-    })
+      expect(toast.error).toHaveBeenCalledWith("Something went wrong");
+    });
   });
 })

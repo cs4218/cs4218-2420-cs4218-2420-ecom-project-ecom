@@ -318,6 +318,13 @@ export const realtedProductController = async (req, res) => {
 export const productCategoryController = async (req, res) => {
   try {
     const category = await categoryModel.findOne({ slug: req.params.slug });
+    if (!category) {
+      res.status(404).send({
+        success: false,
+        message: "Category does not exist"
+      });
+      return;
+    }
     const products = await productModel.find({ category }).populate("category");
     res.status(200).send({
       success: true,
