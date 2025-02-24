@@ -55,9 +55,27 @@ describe('realtedProductController', () => {
       }
     ],
     [
-      "returns 400 for invalid PID or invalid CID",
+      "returns 400 for valid PID and invalid CID",
       {
         req: { pid: "66db427fdb0119d9234b27f2", cid: "notObjectId" },
+        setupMock: () => {
+          productModel.find.mockImplementation(() => ({
+            select: jest.fn().mockReturnThis(),
+            limit: jest.fn().mockReturnThis(),
+            populate: jest.fn().mockRejectedValueOnce(new mongoose.Error.CastError()),
+          }));
+        },
+        expectedStatus: 400,
+        expectedReturn: {
+          success: false,
+          message: "Invalid product id or category id format"
+        }
+      }
+    ],
+    [
+      "returns 400 for invalid PID and valid CID",
+      {
+        req: { pid: "notObjectId", cid: "66db427fdb0119d9234b27f2" },
         setupMock: () => {
           productModel.find.mockImplementation(() => ({
             select: jest.fn().mockReturnThis(),
