@@ -61,14 +61,14 @@ describe('createCategoryController', () => {
     });
   });
 
-  it("should return 401 when name is empty", async () => {
+  it("should return 400 when name is empty", async () => {
     req.body = { name: "  " };
 
     await createCategoryController(req, res);
 
     expect(categoryModel.findOne).not.toHaveBeenCalled();
     expect(categoryModel.create).not.toHaveBeenCalled();
-    expect(res.status).toHaveBeenCalledWith(401);
+    expect(res.status).toHaveBeenCalledWith(400);
     expect(res.send).toHaveBeenCalledWith({ message: "Name is required" });
   });
 
