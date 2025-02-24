@@ -1,6 +1,10 @@
 import categoryModel from "../models/categoryModel.js";
 import productModel from '../models/productModel.js';
-import { getSingleProductController, productCategoryController } from './productController';
+import {
+  getSingleProductController,
+  productCategoryController,
+  productPhotoController
+} from './productController';
 
 jest.mock('../models/categoryModel.js');
 jest.mock('../models/productModel.js');
@@ -143,5 +147,64 @@ describe('getSingleProductController', () => {
       success: false,
       message: "Product not found",
     });
+  });
+});
+
+describe('productPhotoController', () => {
+  let req, res;
+  const mockPhoto = {
+    data: Buffer.from("mockImageData"),
+    contentType: "image/png",
+  }
+
+  beforeEach(() => {
+    req = {
+      params: {
+        pid: "66db427fdb0119d9234b27f3",
+      }
+    };
+
+    res = {
+      status: jest.fn().mockReturnThis(),
+      send: jest.fn(),
+      set: jest.fn(),
+    };
+  });
+
+  it('should return 200 with valid photo', async () => {
+    productModel.findById.mockImplementation(() => ({
+      select: jest.fn().mockResolvedValue({ photo: mockPhoto }),
+    }));
+
+    await productPhotoController(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.set).toHaveBeenCalledWith("Content-type", "image/png");
+    expect(res.send).toHaveBeenCalledWith(mockPhoto.data);
+  });
+
+  it('should return 404 for non-existent product', async () => {
+    productModel.findById.mockImplementation(() => ({
+      select: jest.fn().mockResolvedValue(null),
+    }));
+
+    await productPhotoController(req, res);
+
+    expect(res.status).toBeCalledWith(404);
+  });
+
+  it("should handle errors gracefully", async () => {
+    productModel.findById.mockImplementation(() => ({
+      select: jest.fn().mockRejectedValueOnce(new Error("Internal Error")),
+    }));
+    await productPhotoController(req, res);
+    
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.send).toHaveBeenCalledWith(
+      expect.objectContaining({
+        success: false,
+        message: "Erorr while getting photo",
+      })
+    );
   });
 })
