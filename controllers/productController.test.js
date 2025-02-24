@@ -1,16 +1,107 @@
+import mongoose from "mongoose";
 import categoryModel from "../models/categoryModel.js";
 import productModel from '../models/productModel.js';
 import {
   getSingleProductController,
   productCategoryController,
-  productPhotoController
+  productPhotoController,
+  realtedProductController
 } from './productController';
 
 jest.mock('../models/categoryModel.js');
 jest.mock('../models/productModel.js');
 
 const internalError = new Error("Mock internal error");
-// jest.spyOn(console, 'log').mockImplementation(jest.fn()); // silence error log outputs in test
+jest.spyOn(console, 'log').mockImplementation(jest.fn()); // silence error log outputs in test
+
+/**
+ * Combinatorial testing approach
+ * 2 factors -- pid, cid
+ * 2 levels -- valid, invalid (not ObjectId)
+ *    (missing is handled by express router to return 404)
+ * Total: 4 test cases + 1 (500)
+ */
+describe('realtedProductController', () => {
+  let res, req;
+  const mockRelatedProds =[{_id: "p2"}, {_id: "p3"}, {_id: "p4"}] ;
+  const internalError = new Error("Internal Error");
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+
+    req = {
+      params: {}
+    };
+    res = {
+      status: jest.fn().mockReturnThis(),
+      send: jest.fn(),
+    };
+  });
+
+  const testCases = [
+    [
+      "returns 200 for valid PID and valid CID",
+      {
+        req: { pid: "66db427fdb0119d9234b27f2", cid: "96db427fdb0119d9234b27f2" },
+        setupMock: () => {
+          productModel.find.mockImplementation(() => ({
+            select: jest.fn().mockReturnThis(),
+            limit: jest.fn().mockReturnThis(),
+            populate: jest.fn().mockResolvedValue(mockRelatedProds),
+          }));
+        },
+        expectedStatus: 200,
+        expectedReturn: { success: true, products: mockRelatedProds }
+      }
+    ],
+    [
+      "returns 400 for invalid PID or invalid CID",
+      {
+        req: { pid: "66db427fdb0119d9234b27f2", cid: "notObjectId" },
+        setupMock: () => {
+          productModel.find.mockImplementation(() => ({
+            select: jest.fn().mockReturnThis(),
+            limit: jest.fn().mockReturnThis(),
+            populate: jest.fn().mockRejectedValueOnce(new mongoose.Error.CastError()),
+          }));
+        },
+        expectedStatus: 400,
+        expectedReturn: {
+          success: false,
+          message: "Invalid product id or category id format"
+        }
+      }
+    ],
+    [
+      "returns 500 for internal server error",
+      {
+        req: { pid: "66db427fdb0119d9234b27f2", cid: "96db427fdb0119d9234b27f2" },
+        setupMock: () => {
+          productModel.find.mockImplementation(() => ({
+            select: jest.fn().mockReturnThis(),
+            limit: jest.fn().mockReturnThis(),
+            populate: jest.fn().mockRejectedValueOnce(internalError),
+          }));
+        },
+        expectedStatus: 500,
+        expectedReturn: { success: false, message: "error while geting related product", error: internalError }
+      }        
+    ]
+  ];
+
+  it.each(testCases)(
+    "%s",
+    async (testcase, { req, setupMock, expectedStatus, expectedReturn }) => {
+      req.params = req;
+      setupMock();
+
+      await realtedProductController(req, res);
+  
+      expect(res.status).toBeCalledWith(expectedStatus);
+      expect(res.send).toBeCalledWith(expectedReturn);
+    }
+  )
+});
 
 describe('productCategoryController', () => {
   let res, req;

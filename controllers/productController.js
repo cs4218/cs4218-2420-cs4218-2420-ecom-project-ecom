@@ -1,11 +1,11 @@
-import categoryModel from "../models/categoryModel.js";
-import orderModel from "../models/orderModel.js";
-import productModel from "../models/productModel.js";
-
 import braintree from "braintree";
 import dotenv from "dotenv";
 import fs from "fs";
+import mongoose from "mongoose";
 import slugify from "slugify";
+import categoryModel from "../models/categoryModel.js";
+import orderModel from "../models/orderModel.js";
+import productModel from "../models/productModel.js";
 
 dotenv.config();
 
@@ -300,6 +300,7 @@ export const searchProductController = async (req, res) => {
 export const realtedProductController = async (req, res) => {
   try {
     const { pid, cid } = req.params;
+
     const products = await productModel
       .find({
         category: cid,
@@ -314,7 +315,14 @@ export const realtedProductController = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    res.status(400).send({
+  
+    if (error instanceof mongoose.Error.CastError) {
+      return res.status(400).send({
+        success: false,
+        message: "Invalid product id or category id format"
+      });
+    }
+    res.status(500).send({
       success: false,
       message: "error while geting related product",
       error,
