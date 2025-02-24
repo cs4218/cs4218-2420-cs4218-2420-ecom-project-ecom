@@ -42,7 +42,7 @@ describe('realtedProductController', () => {
     [
       "returns 200 for valid PID and valid CID",
       {
-        req: { pid: "66db427fdb0119d9234b27f2", cid: "96db427fdb0119d9234b27f2" },
+        testReq: { pid: "66db427fdb0119d9234b27f2", cid: "96db427fdb0119d9234b27f2" },
         setupMock: () => {
           productModel.find.mockImplementation(() => ({
             select: jest.fn().mockReturnThis(),
@@ -57,7 +57,7 @@ describe('realtedProductController', () => {
     [
       "returns 400 for valid PID and invalid CID",
       {
-        req: { pid: "66db427fdb0119d9234b27f2", cid: "notObjectId" },
+        testReq: { pid: "66db427fdb0119d9234b27f2", cid: "notObjectId" },
         setupMock: () => {
           productModel.find.mockImplementation(() => ({
             select: jest.fn().mockReturnThis(),
@@ -75,7 +75,7 @@ describe('realtedProductController', () => {
     [
       "returns 400 for invalid PID and valid CID",
       {
-        req: { pid: "notObjectId", cid: "66db427fdb0119d9234b27f2" },
+        testReq: { pid: "notObjectId", cid: "66db427fdb0119d9234b27f2" },
         setupMock: () => {
           productModel.find.mockImplementation(() => ({
             select: jest.fn().mockReturnThis(),
@@ -93,7 +93,7 @@ describe('realtedProductController', () => {
     [
       "returns 500 for internal server error",
       {
-        req: { pid: "66db427fdb0119d9234b27f2", cid: "96db427fdb0119d9234b27f2" },
+        testReq: { pid: "66db427fdb0119d9234b27f2", cid: "96db427fdb0119d9234b27f2" },
         setupMock: () => {
           productModel.find.mockImplementation(() => ({
             select: jest.fn().mockReturnThis(),
@@ -109,8 +109,8 @@ describe('realtedProductController', () => {
 
   it.each(testCases)(
     "%s",
-    async (testcase, { req, setupMock, expectedStatus, expectedReturn }) => {
-      req.params = req;
+    async (testcase, { testReq, setupMock, expectedStatus, expectedReturn }) => {
+      req.params = testReq;
       setupMock();
 
       await realtedProductController(req, res);
@@ -185,7 +185,7 @@ describe('productCategoryController', () => {
       success: false,
       message: "Category does not exist",
     });
-  })
+  });
 });
 
 describe('getSingleProductController', () => {
@@ -302,7 +302,17 @@ describe('productPhotoController', () => {
     expect(res.status).toBeCalledWith(404);
   });
 
-  it("should handle errors gracefully", async () => {
+  it('should return 400 for invalid ObjectId', async () => {
+    productModel.findById.mockImplementation(() => ({
+      select: jest.fn().mockRejectedValueOnce(new mongoose.Error.CastError()),
+    })); 
+
+    await productPhotoController(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+  });
+
+  it("should handle internal errors gracefully", async () => {
     productModel.findById.mockImplementation(() => ({
       select: jest.fn().mockRejectedValueOnce(new Error("Internal Error")),
     }));
