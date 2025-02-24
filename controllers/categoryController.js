@@ -3,7 +3,7 @@ import categoryModel from "../models/categoryModel.js";
 export const createCategoryController = async (req, res) => {
   try {
     const { name } = req.body;
-    if (!name) {
+    if (!name.trim()) {
       return res.status(401).send({ message: "Name is required" });
     }
     const existingCategory = await categoryModel.findOne({ name });
@@ -36,7 +36,7 @@ export const createCategoryController = async (req, res) => {
 export const updateCategoryController = async (req, res) => {
   try {
     const { name } = req.body;
-    if (!name) {
+    if (!name.trim()) {
       return res.status(400).send({
         message: "Name is required"
       });

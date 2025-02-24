@@ -62,7 +62,7 @@ describe('createCategoryController', () => {
   });
 
   it("should return 401 when name is empty", async () => {
-    req.body = { name: "" };
+    req.body = { name: "  " };
 
     await createCategoryController(req, res);
 
@@ -130,7 +130,7 @@ describe('updateCategoryController', () => {
   });
 
   it('should return 400 when updated to empty string', async () => {
-    req.body = { name: "" };
+    req.body = { name: "  " };
 
     await updateCategoryController(req, res);
 
