@@ -32,6 +32,8 @@ jest.mock('react-router-dom', () => ({
   useNavigate: () => mockNavigate,
 }));
 
+jest.mock('../components/Layout', () => ({ children }) => <div>{children}</div>)
+
 const renderComponent = (slug) => {
   render(
     <MemoryRouter initialEntries={[`/category/${slug}`]}>

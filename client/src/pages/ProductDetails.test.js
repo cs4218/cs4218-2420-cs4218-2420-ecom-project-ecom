@@ -53,6 +53,7 @@ window.matchMedia = window.matchMedia || function() {
   };
 };
 
+jest.mock('../components/Layout', () => ({ children }) => <div>{children}</div>)
 const renderComponent = () => {
   render(
     <MemoryRouter initialEntries={['/product/mock-product']}>
