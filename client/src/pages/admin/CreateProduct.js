@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from "react";
-import Layout from "./../../components/Layout";
-import AdminMenu from "./../../components/AdminMenu";
-import toast from "react-hot-toast";
-import axios from "axios";
 import { Select } from "antd";
+import axios from "axios";
+import React, { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import AdminMenu from "./../../components/AdminMenu";
+import Layout from "./../../components/Layout";
 const { Option } = Select;
 
 const CreateProduct = () => {
@@ -35,10 +35,24 @@ const CreateProduct = () => {
     getAllCategory();
   }, []);
 
+  const validateForm = () => {
+    if (!name.trim()) return "Name is required";
+    if (!description.trim()) return "Description is required";
+    if (!price || isNaN(price) || price < 0) return "Invalid price";
+    if (!quantity || isNaN(quantity) || quantity < 0) return "Invalid quantity";
+    if (!category) return "Category is required";
+    if (!photo) return "Photo is required";
+    return null; // No validation errors
+  };
   //create product function
   const handleCreate = async (e) => {
     e.preventDefault();
     try {
+      const errorMessage = validateForm();
+      if (errorMessage) {
+        toast.error(errorMessage);
+        return;
+      }
       const productData = new FormData();
       productData.append("name", name);
       productData.append("description", description);
@@ -46,11 +60,12 @@ const CreateProduct = () => {
       productData.append("quantity", quantity);
       productData.append("photo", photo);
       productData.append("category", category);
-      const { data } = axios.post(
+      productData.append("shipping", shipping);
+      const { data } = await axios.post(
         "/api/v1/product/create-product",
         productData
       );
-      if (data?.success) {
+      if (!data?.success) {
         toast.error(data?.message);
       } else {
         toast.success("Product Created Successfully");
@@ -73,7 +88,7 @@ const CreateProduct = () => {
             <h1>Create Product</h1>
             <div className="m-1 w-75">
               <Select
-                bordered={false}
+                variant="borderless"
                 placeholder="Select a category"
                 size="large"
                 showSearch
@@ -151,8 +166,8 @@ const CreateProduct = () => {
               </div>
               <div className="mb-3">
                 <Select
-                  bordered={false}
-                  placeholder="Select Shipping "
+                  variant="borderless" 
+                  placeholder="Select Shipping"
                   size="large"
                   showSearch
                   className="form-select mb-3"
