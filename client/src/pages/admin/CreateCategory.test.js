@@ -32,6 +32,10 @@ jest.mock('../../context/search', () => ({
 jest.mock('../../hooks/useCategory', () => jest.fn(() => []));
 jest.spyOn(console, 'log').mockImplementation(() => {}); // silence log outputs in test
 
+jest.mock('../../components/Layout', () => ({ children }) => {
+  return <div>{children}</div>
+});
+
 const renderComponent = () => {
   render(
     <MemoryRouter initialEntries={['/dashboard/admin/create-category']}>
