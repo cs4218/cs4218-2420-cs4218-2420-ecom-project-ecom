@@ -135,7 +135,7 @@ describe('CreateCategory Component -- Create Category', () => {
       expect(toast.success).toHaveBeenCalledWith("New Category is created");
     });
     expect(axios.post).toHaveBeenCalledWith(
-      expect.any(String),         // api endpoint
+      expect.stringContaining("/api/v1/category/create-category"),         // api endpoint
       { name: "New Category" }    // request body
     );
   });
@@ -293,7 +293,10 @@ describe('CreateCategory Component -- Edit Category', () => {
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith("Somtihing went wrong");
     });
-    expect(axios.put).toHaveBeenCalledWith(expect.any(String), { name: "" });
+    expect(axios.put).toHaveBeenCalledWith(
+      expect.stringContaining(`/api/v1/category/update-category/${mockCategory._id}`),
+      { name: "" }
+    );
   });
 });
 
@@ -322,7 +325,9 @@ describe('CreateCategory component -- delete category', () => {
       expect(toast.success).toHaveBeenCalledWith(`category is deleted`);
     });
     expect(axios.delete)
-      .toHaveBeenCalledWith(expect.stringContaining("67a21772a6d9e00ef2ac022a"));
+      .toHaveBeenCalledWith(
+        expect.stringContaining(`/api/v1/category/delete-category/${mockCategory._id}`)
+      );
   });
 
   it('shows error message for backend errors', async () => {
@@ -339,6 +344,8 @@ describe('CreateCategory component -- delete category', () => {
       expect(toast.error).toHaveBeenCalledWith("Somtihing went wrong");
     });
     expect(axios.delete)
-      .toHaveBeenCalledWith(expect.stringContaining("67a21772a6d9e00ef2ac022a"));
+      .toHaveBeenCalledWith(
+        expect.stringContaining(`/api/v1/category/delete-category/${mockCategory._id}`)
+      );
   })
 })
