@@ -1,8 +1,10 @@
 import { renderHook, waitFor } from "@testing-library/react";
 import axios from "axios";
+import toast from 'react-hot-toast';
 import useCategory from "./useCategory";
 
 jest.mock('axios');
+jest.mock('react-hot-toast');
 
 describe('useCategory hook', () => {
   it('should return a list of categories', async () => {
@@ -34,7 +36,7 @@ describe('useCategory hook', () => {
   it('should handle API errors', async () => {
     const apiError = new Error("Mock API Error");
     axios.get.mockRejectedValue(apiError);
-    const logSpy = jest
+    jest
       .spyOn(console, 'log')
       .mockImplementation(() => {}); // silence log outputs in test
 
@@ -43,8 +45,7 @@ describe('useCategory hook', () => {
     await waitFor(() => {
       expect(result.current).toEqual([]);
     });
-    expect(logSpy).toHaveBeenCalledWith(apiError);
+    expect(toast.error).toHaveBeenCalledWith("Something went wrong while getting categories");
 
-    logSpy.mockRestore();
   });
 });
