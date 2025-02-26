@@ -318,7 +318,7 @@ describe('deleteCategoryController', () => {
     await deleteCategoryCOntroller(req, res);
 
     expect(categoryModel.findByIdAndDelete).toHaveBeenCalledWith(mockId);
-    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.status).toHaveBeenCalledWith(404);
     expect(res.send).toHaveBeenCalledWith({
       success: false,
       message: "Categry Does Not Exist",

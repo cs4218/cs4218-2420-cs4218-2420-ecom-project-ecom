@@ -31,13 +31,12 @@ describe("CategoryForm Component", () => {
   });
 
   test("calls handleSubmit on form submission", () => {
-    const handleSubmitMock = jest.fn();
-    render(<CategoryForm handleSubmit={handleSubmitMock} value="Test" setValue={() => {}} />);
+    render(<CategoryForm handleSubmit={mockSubmit} value="Test" setValue={() => {}} />);
   
     const formElement = screen.getByRole("button", { name: /submit/i });
     fireEvent.submit(formElement);
   
-    expect(handleSubmitMock).toHaveBeenCalled();
+    expect(mockSubmit).toHaveBeenCalled();
   });
   
 });

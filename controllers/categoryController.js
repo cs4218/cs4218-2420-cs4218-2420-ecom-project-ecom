@@ -44,7 +44,7 @@ export const updateCategoryController = async (req, res) => {
     const { id } = req.params;
     const category = await categoryModel.findByIdAndUpdate(
       id,
-      { name, slug: slugify(name.trim()) },
+      { name: name.trim(), slug: slugify(name.trim()) },
       { new: true }
     );
 
@@ -120,7 +120,7 @@ export const deleteCategoryCOntroller = async (req, res) => {
         message: "Categry Deleted Successfully",
       });
     } else {
-      res.status(400).send({
+      res.status(404).send({
         success: false,
         message: "Categry Does Not Exist",
       })
