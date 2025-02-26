@@ -41,6 +41,7 @@ const CreateProduct = () => {
     if (!price || isNaN(price) || price < 0) return "Invalid price";
     if (!quantity || isNaN(quantity) || quantity < 0) return "Invalid quantity";
     if (!category) return "Category is required";
+    if (!shipping) return "Shipping is required";
     if (!photo) return "Photo is required";
     return null; // No validation errors
   };

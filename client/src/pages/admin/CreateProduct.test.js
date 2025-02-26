@@ -4,7 +4,8 @@ import user from '@testing-library/user-event';
 import axios from "axios";
 import React from 'react';
 import toast from "react-hot-toast";
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { MemoryRouter } from 'react-router-dom';
+import Layout from '../../components/Layout';
 import CreateProduct from './CreateProduct';
 
 jest.mock('axios');
@@ -37,7 +38,9 @@ window.URL.createObjectURL = jest.fn();
  * Resistance to refactoring/ lib changes
  */
 jest.mock('../../components/AdminMenu', () => () => <div></div>)
-jest.mock('../../components/Layout', () => ({ children }) => <div>{children}</div>)
+jest.mock('../../components/Layout', () => ({ children }) => {
+  return <div>{children}</div>
+})
 
 jest.mock("antd", () => ({
     Select: Object.assign(({ children, onChange, value, placeholder, ...props }) => (
@@ -56,10 +59,10 @@ jest.mock("antd", () => ({
 
 const renderComponent = () => {
   render(
-    <MemoryRouter initialEntries={['/dashboard/admin/create-product']}>
-      <Routes>
-        <Route path="/dashboard/admin/create-product" element={<CreateProduct />} />
-      </Routes>
+    <MemoryRouter>
+      <Layout>
+        <CreateProduct />
+      </Layout>
     </MemoryRouter>
   );
 }
@@ -219,6 +222,13 @@ describe('Product creation', () => {
       {
         product: {...validProduct, photo: ""},
         expectedErr: "Photo is required"
+      }
+    ],
+    [
+      "no shipping",
+      {
+        product: {...validProduct, shipping: ""},
+        expectedErr: "Shipping is required"
       }
     ],
   ]
