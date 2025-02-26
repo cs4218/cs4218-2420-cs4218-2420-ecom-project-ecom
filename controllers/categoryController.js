@@ -6,7 +6,7 @@ export const createCategoryController = async (req, res) => {
     if (!name.trim()) {
       return res.status(400).send({ message: "Name is required" });
     }
-    const existingCategory = await categoryModel.findOne({ name });
+    const existingCategory = await categoryModel.findOne({ name: name.trim() });
     if (existingCategory) {
       return res.status(200).send({
         success: false,
@@ -15,7 +15,7 @@ export const createCategoryController = async (req, res) => {
     }
     const category = await categoryModel.create({
       name,
-      slug: slugify(name),
+      slug: slugify(name.trim()),
     });
     res.status(201).send({
       success: true,
@@ -44,7 +44,7 @@ export const updateCategoryController = async (req, res) => {
     const { id } = req.params;
     const category = await categoryModel.findByIdAndUpdate(
       id,
-      { name, slug: slugify(name) },
+      { name, slug: slugify(name.trim()) },
       { new: true }
     );
 
