@@ -14,7 +14,7 @@ export const createCategoryController = async (req, res) => {
       });
     }
     const category = await categoryModel.create({
-      name,
+      name: name.trim(),
       slug: slugify(name.trim()),
     });
     res.status(201).send({
