@@ -44,6 +44,7 @@ const HomePage = () => {
       setLoading(false);
       setProducts(data.products);
     } catch (error) {
+      console.log("HERE")
       setLoading(false);
       console.log(error);
     }

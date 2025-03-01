@@ -7,6 +7,7 @@ import HomePage from './HomePage';
 import { Prices } from "../components/Prices";
 import toast from 'react-hot-toast';
 import { query } from 'express';
+import { afterEach } from 'node:test';
 
 
 jest.mock('axios');
@@ -169,8 +170,14 @@ describe('Home page component', () => {
         case getSecondProductsEndpoint:
           return Promise.resolve(mockSecondProductsRes)
       }
-    })
+    });
+    consoleLogSpy = jest.spyOn(console, "log").mockImplementation(() => { });
   });
+
+  afterEach(() => {
+    consoleLogSpy.mockRestore();
+  });
+
   it("should render default home page", async () => {
     const { getByRole, getByText } = render(
       <MemoryRouter>
@@ -414,5 +421,135 @@ describe('Home page component', () => {
       "cart",
       JSON.stringify([mockProductsFirst[0]])
     );
+  });
+
+  it("should log error when initial category data throws error", async () => {
+    axios.get.mockImplementation((req) => {
+      switch (req) {
+        case getCategoriesEndpoint:
+          return Promise.reject(new Error("Failed to fetch category"));
+        case getFirstProductsEndpoint:
+          return Promise.resolve(mockFirstProductsRes);
+        case getTotalEndpoint:
+          return Promise.resolve(mockMoreTotalRes);
+        case getSecondProductsEndpoint:
+          return Promise.resolve(mockSecondProductsRes)
+      }
+    });
+    render(
+      <MemoryRouter>
+        <HomePage />
+      </MemoryRouter>
+    );
+    await waitFor(() => {
+      expect(consoleLogSpy).toHaveBeenCalledWith(Error("Failed to fetch category"));
+    });
+  });
+
+  it("should log error when initial products data throws error", async () => {
+    axios.get.mockImplementation((req) => {
+      switch (req) {
+        case getCategoriesEndpoint:
+          return Promise.resolve(mockCategoriesRes);
+        case getFirstProductsEndpoint:
+          return Promise.reject(new Error("Failed to fetch products"));
+        case getTotalEndpoint:
+          return Promise.resolve(mockMoreTotalRes);
+        case getSecondProductsEndpoint:
+          return Promise.resolve(mockSecondProductsRes)
+      }
+    });
+    const { getByText } = render(
+      <MemoryRouter>
+        <HomePage />
+      </MemoryRouter>
+    );
+    await waitFor(() => {
+      expect(consoleLogSpy).toHaveBeenCalledWith(Error("Failed to fetch products"));
+    });
+  });
+
+  it("should log error when initial total data throws error", async () => {
+    axios.get.mockImplementation((req) => {
+      switch (req) {
+        case getCategoriesEndpoint:
+          return Promise.resolve(mockCategoriesRes);
+        case getFirstProductsEndpoint:
+          return Promise.resolve(mockFirstProductsRes);
+        case getTotalEndpoint:
+          return Promise.reject(new Error("Failed to fetch total count"));
+        case getSecondProductsEndpoint:
+          return Promise.resolve(mockSecondProductsRes)
+      }
+    });
+    render(
+      <MemoryRouter>
+        <HomePage />
+      </MemoryRouter>
+    );
+    await waitFor(() => {
+      expect(consoleLogSpy).toHaveBeenCalledWith(Error("Failed to fetch total count"));
+    });
+  });
+
+  it("should log error when second page data throws error", async () => {
+    axios.get.mockImplementation((req) => {
+      switch (req) {
+        case getCategoriesEndpoint:
+          return Promise.resolve(mockCategoriesRes);
+        case getFirstProductsEndpoint:
+          return Promise.resolve(mockFirstProductsRes);
+        case getTotalEndpoint:
+          return Promise.resolve(mockMoreTotalRes);
+        case getSecondProductsEndpoint:
+          return Promise.reject(new Error("Failed to fetch second page"));
+      }
+    });
+    const { getByText } = render(
+      <MemoryRouter>
+        <HomePage />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(getByText('Loadmore')).toBeInTheDocument();
+    });
+    const loadButton = getByText('Loadmore');
+    fireEvent.click(loadButton);
+    await waitFor(() => {
+      expect(consoleLogSpy).toHaveBeenCalledWith(Error("Failed to fetch second page"));
+    });
+  });
+
+  it("should have no categories if categories api fail", async () => {
+    axios.get.mockImplementation((req) => {
+      switch (req) {
+        case getCategoriesEndpoint:
+          return Promise.resolve({
+            data: {
+              success: false,
+              category: mockCategories
+            }
+          });
+        case getFirstProductsEndpoint:
+          return Promise.resolve(mockFirstProductsRes);
+        case getTotalEndpoint:
+          return Promise.resolve(mockMoreTotalRes);
+        case getSecondProductsEndpoint:
+          return Promise.resolve(mockSecondProductsRes)
+      }
+    });
+    const { queryByText, getByText } = render(
+      <MemoryRouter>
+        <HomePage />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(getByText('Shoes')).toBeInTheDocument();
+    })
+    mockCategories.forEach(({ name }) => {
+      expect(queryByText(name)).not.toBeInTheDocument();
+    });
   });
 });
