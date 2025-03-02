@@ -15,9 +15,9 @@ const internalError = new Error("Mock internal error");
 jest.spyOn(console, 'log').mockImplementation(jest.fn()); // silence error log outputs in test
 
 /**
- * Combinatorial testing approach
- * 2 factors -- pid, cid
- * 2 levels -- valid, invalid (not ObjectId)
+ * decision tables
+ * 2 params -- pid, cid
+ * 2 actions -- 200, 400 (not ObjectId)
  *    (missing is handled by express router to return 404)
  * Total: 4 test cases + 1 (500)
  */
@@ -76,6 +76,24 @@ describe('realtedProductController', () => {
       "returns 400 for invalid PID and valid CID",
       {
         testReq: { pid: "notObjectId", cid: "66db427fdb0119d9234b27f2" },
+        setupMock: () => {
+          productModel.find.mockImplementation(() => ({
+            select: jest.fn().mockReturnThis(),
+            limit: jest.fn().mockReturnThis(),
+            populate: jest.fn().mockRejectedValueOnce(new mongoose.Error.CastError()),
+          }));
+        },
+        expectedStatus: 400,
+        expectedReturn: {
+          success: false,
+          message: "Invalid product id or category id format"
+        }
+      }
+    ],
+    [
+      "returns 400 for invalid PID and invalid CID",
+      {
+        testReq: { pid: "notObjectId", cid: "notObjectId" },
         setupMock: () => {
           productModel.find.mockImplementation(() => ({
             select: jest.fn().mockReturnThis(),

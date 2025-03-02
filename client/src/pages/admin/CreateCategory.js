@@ -20,6 +20,7 @@ const CreateCategory = () => {
       });
       if (data?.success) {
         toast.success(`${name} is created`);
+        setName("");
         getAllCategory();
       } else {
         toast.error(data.message);

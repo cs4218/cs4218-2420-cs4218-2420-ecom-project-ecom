@@ -70,17 +70,6 @@ describe('Render CreateCategory page', () => {
     expect(screen.getByText('Actions')).toBeInTheDocument();
   });
 
-  it('should have empty inputs initially', async () => {
-    renderComponent();
-  
-    await waitFor(() => {
-      expect(screen.getByText("Manage Category")).toBeInTheDocument();
-    });
-    expect(screen.getByPlaceholderText('Enter new category').value).toBe("");
-    expect(screen.getByText('Name')).toBeInTheDocument();
-    expect(screen.getByText('Actions')).toBeInTheDocument();
-  });
-
   it('renders categories on mount', async () => {
     renderComponent();
 
@@ -110,6 +99,17 @@ describe('CreateCategory Component -- Create Category', () => {
     axios.get.mockResolvedValue(mockAPIReturn); 
   });
 
+  it('should have empty inputs initially', async () => {
+    renderComponent();
+  
+    await waitFor(() => {
+      expect(screen.getByText("Manage Category")).toBeInTheDocument();
+    });
+    expect(screen.getByPlaceholderText('Enter new category').value).toBe("");
+    expect(screen.getByText('Name')).toBeInTheDocument();
+    expect(screen.getByText('Actions')).toBeInTheDocument();
+  });
+
   it('should allow users to enter new category', async () => {
     renderComponent();
   
@@ -119,8 +119,8 @@ describe('CreateCategory Component -- Create Category', () => {
     fireEvent.change(screen.getByPlaceholderText('Enter new category'), { target: { value: 'New Category' } });
     expect(screen.getByPlaceholderText('Enter new category').value).toBe('New Category');
   });
-  
-  it('should allow users to create new category', async () => {
+
+  it('should toast success when users successfully create new category', async () => {
     axios.post.mockResolvedValueOnce(
       { data:
         { success: true, message: "" }
@@ -140,19 +140,24 @@ describe('CreateCategory Component -- Create Category', () => {
     );
   });
 
-  it('should prevent users from creating empty category', async () => {
-    axios.post.mockRejectedValueOnce(new Error("Name is required error"));
+  it('should reset form to empty after create new category', async () => {
+    axios.post.mockResolvedValueOnce(
+      { data:
+        { success: true, message: "" }
+      });
 
     renderComponent();
 
+    fireEvent.change(screen.getByPlaceholderText('Enter new category'), { target: { value: 'New Category' } });
     fireEvent.click(screen.getByText("Submit"));
-
+    
     await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith("somthing went wrong in input form");
+      expect(toast.success).toHaveBeenCalledWith("New Category is created");
     });
+    expect(screen.getByPlaceholderText('Enter new category').value).toBe("");
   });
 
-  it('should prevent users from creating duplicate category', async () => {
+  it('should toast error when backend validation rejects', async () => {
     const msg = "Category already exists";
     axios.post.mockResolvedValueOnce({
       data: {
