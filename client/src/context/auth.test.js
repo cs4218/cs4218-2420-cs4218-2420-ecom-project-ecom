@@ -41,34 +41,31 @@ describe('AuthProvider Component', () => {
         consoleSpy.mockRestore();
     });
 
+    it('should retrieve auth state from localStorage if valid auth information in localStorage', () => {
+        localStorage.getItem.mockImplementation(() =>
+            '{"user": {"_id": 1, "name": "John Doe", "email": "test@example.com", "phone": "1234567890", "address": "123 Street", "role": 0}, "token": "12345"}');
+    
+        render(
+            <AuthProvider>
+                <AuthContextChild/>
+            </AuthProvider>
+        );
 
-    describe("retrieve auth state from localStorage", () => {
-        
-        it('if valid auth information in localStorage', () => {
-            localStorage.getItem.mockImplementation(() =>
-                '{"user": {"_id": 1, "name": "John Doe", "email": "test@example.com", "phone": "1234567890", "address": "123 Street", "role": 0}, "token": "12345"}');
-       
-            render(
-                <AuthProvider>
-                    <AuthContextChild/>
-                </AuthProvider>
-            );
-
-            expect(axios.defaults.headers.common['Authorization']).toBe("12345");
-            expect(localStorage.getItem).toHaveBeenCalledWith("auth");
-            expect(consoleSpy).toHaveBeenCalledWith({
-                user: {
-                    _id: 1,
-                    name: "John Doe",
-                    email: "test@example.com",
-                    phone: "1234567890",
-                    address: "123 Street",
-                    role: 0
-                },
-                token: "12345"
-            });
+        expect(axios.defaults.headers.common['Authorization']).toBe("12345");
+        expect(localStorage.getItem).toHaveBeenCalledWith("auth");
+        expect(consoleSpy).toHaveBeenCalledWith({
+            user: {
+                _id: 1,
+                name: "John Doe",
+                email: "test@example.com",
+                phone: "1234567890",
+                address: "123 Street",
+                role: 0
+            },
+            token: "12345"
         });
     });
+
 });
 
 

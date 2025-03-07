@@ -1,21 +1,31 @@
 import React from "react";
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import '@testing-library/jest-dom';
 import Search from "./Search";
 import { useSearch } from "../context/search";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
+import toast from "react-hot-toast";
 
 jest.mock('../context/search', () => ({
     useSearch: jest.fn(),
 }));
 
+jest.mock('../context/cart', () => ({
+    useCart: jest.fn(() => [[], jest.fn()]),
+}));
+
+const mockNavigateFunction = jest.fn();
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useNavigate: () => mockNavigateFunction,
+}));
+
 jest.mock("./../components/Layout", () => ({ children }) => <div>{children}</div>);
 
-jest.mock('react-toastify', () => ({
-    toast: {
-        success: jest.fn(),
-    },
-}));
+jest.mock("react-hot-toast");
+
+Storage.prototype.setItem = jest.fn(); // Properly mock setItem
+jest.spyOn(Storage.prototype, 'getItem').mockReturnValue(null); // Return null for an empty cart
 
 const renderSearchComp = () => {
     render(
@@ -72,11 +82,16 @@ const mockTwoProducts = [
 
 
 describe("Search component", () => {
+    beforeEach(() => {
+        localStorage.clear();
+        jest.clearAllMocks();
+      });
+      
     it("should show 'No Products Found' when 0 products are found", () => {
         useSearch.mockReturnValue([{ results: [] }, jest.fn()]);
         renderSearchComp();
 
-        expect(screen.getByText('Search Resuts')).toBeInTheDocument();
+        expect(screen.getByText('Search Results')).toBeInTheDocument();
         expect(screen.getByText("No Products Found")).toBeInTheDocument();
     });
     
@@ -111,4 +126,27 @@ describe("Search component", () => {
         expect(screen.getAllByRole("button", { name: /ADD TO CART/i })).toHaveLength(2);
     });
 
+    it("should navigate the user to the product details upon clicking 'More Details' button", () => {
+        useSearch.mockReturnValue([{
+            results: [mockSingleProduct]
+        }, jest.fn()]);
+        renderSearchComp();
+
+        fireEvent.click(screen.getByRole("button", { name: /More Details/i }));
+        expect(mockNavigateFunction).toHaveBeenCalledWith(`/product/${mockSingleProduct.slug}`);
+    });
+
+    it("should add to the cart upon clicking 'Add To Cart' button", () => {
+        useSearch.mockReturnValue([{
+            results: [mockSingleProduct]
+        }, jest.fn()]);
+        renderSearchComp();
+    
+        jest.spyOn(Storage.prototype, 'getItem').mockReturnValueOnce(JSON.stringify(mockSingleProduct));
+        fireEvent.click(screen.getByRole("button", { name: /ADD TO CART/i }));
+        
+        expect(localStorage.setItem).toHaveBeenCalledWith("cart", JSON.stringify([mockSingleProduct]));
+        expect(JSON.parse(localStorage.getItem("cart"))).toEqual(mockSingleProduct);
+        expect(toast.success).toHaveBeenCalledWith("Item Added to cart");
+    });
 });

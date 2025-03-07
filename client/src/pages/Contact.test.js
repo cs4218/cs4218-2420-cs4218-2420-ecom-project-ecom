@@ -10,12 +10,6 @@ jest.mock("./../components/Layout", () => ({ children, title }) => (
   </div>
 ));
 
-jest.mock("react-icons/bi", () => ({
-    BiMailSend: () => <span>BiMailSend Icon</span>,
-    BiPhoneCall: () => <span>BiPhoneCall Icon</span>,
-    BiSupport: () => <span>BiSupport Icon</span>,
-  }));
-
 describe("Contact Component", () => {
   
   beforeEach(() => {
