@@ -328,29 +328,61 @@ export const productCategoryController = async (req, res) => {
 
 //payment gateway api
 //token
-export const braintreeTokenController = async (req, res) => {
+export const braintreeTokenController = async (req, res, gatewayParam=gateway) => {
   try {
-    gateway.clientToken.generate({}, function (err, response) {
+    gatewayParam.clientToken.generate({}, function (err, response) {
       if (err) {
         res.status(500).send(err);
       } else {
-        res.send(response);
+        res.status(200).send(response); // Add 200 status code to the response for standard API requests
       }
     });
   } catch (error) {
-    console.log(error);
+    console.error(error);
   }
 };
 
 //payment
-export const brainTreePaymentController = async (req, res) => {
+export const brainTreePaymentController = async (req, res, gatewayParam=gateway) => {
   try {
     const { nonce, cart } = req.body;
+
+    //Check if the nonce is missing 
+    if (!nonce) {
+      return res.status(400).send(new Error("Payment method nonce is required"));
+    }
+
+    // Check if the cart is empty
+    if (!cart || cart.length === 0) {
+      return res.status(400).send(new Error("Cart is empty, cannot process payment"));
+    }
+
+    // Check if cart is missing price
+    for (let item of cart) {
+      if (!item.hasOwnProperty("price")) {
+        return res.status(400).send(new Error("Price is missing in cart"));
+      }
+    }
+
+    // Check if all items in the car are numeric
+    for (let item of cart) {
+      if (isNaN(item.price)) {
+        return res.status(400).send(new Error("Invalid price in cart, prices must be numeric"));
+      }
+    }
+
+    // Check for negative prices in the cart
+    for (let item of cart) {
+      if (item.price < 0) {
+        return res.status(400).send(new Error("Invalid price in cart, prices must be non-negative"));
+      }
+    }
+
     let total = 0;
     cart.map((i) => {
       total += i.price;
     });
-    let newTransaction = gateway.transaction.sale(
+    let newTransaction = gatewayParam.transaction.sale(
       {
         amount: total,
         paymentMethodNonce: nonce,
@@ -358,20 +390,32 @@ export const brainTreePaymentController = async (req, res) => {
           submitForSettlement: true,
         },
       },
-      function (error, result) {
-        if (result) {
+      async function (error, result) {
+        // If the payment proces failed
+        if (error) {
+          return res.status(500).send(new Error("Payment processing failed"));
+        }
+
+        // If the transaction failed
+        if (!result || !result.success) {
+          return res.status(500).send(new Error(result.message || "Transaction failed"));
+        }
+
+        try {
           const order = new orderModel({
             products: cart,
             payment: result,
             buyer: req.user._id,
-          }).save();
-          res.json({ ok: true });
-        } else {
-          res.status(500).send(error);
+          });
+          await order.save(); // Asynchronous to catch any database errors
+          return res.status(200).json({ ok: true });
+        } catch (dbError) {
+          console.error("Database save error:", dbError);
+          return res.status(500).send(dbError);
         }
       }
     );
   } catch (error) {
-    console.log(error);
+    console.error(error);
   }
 };
