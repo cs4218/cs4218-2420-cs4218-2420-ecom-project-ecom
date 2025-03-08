@@ -2,23 +2,28 @@ import { createProductController, deleteProductController, updateProductControll
 import productModel from '../models/productModel';
 import fs from 'fs';
 import slugify from 'slugify';
+import gateway from 'braintree';
+import braintree from 'braintree';
+import { braintreeTokenController } from './productController';
 
 jest.mock('../models/productModel');
 jest.mock('fs');
 jest.mock('slugify');
-jest.mock("braintree", () => ({
+
+jest.mock("braintree", () => {
+  const clientToken = { generate: jest.fn() };
+  return {
     BraintreeGateway: jest.fn(() => ({
-      clientToken: {
-        generate: jest.fn((_, cb) => cb(null, { clientToken: "mockToken" })),
-      },
-      transaction: {
-        sale: jest.fn((_, cb) => cb(null, { success: true })),
-      },
+      clientToken,
     })),
     Environment: {
-      Sandbox: "sandbox",
+      Sandbox: "Sandbox",
     },
-  }));
+  };
+});
+
+
+
 
 describe('createProductController', () => {
   let req, res;
@@ -153,7 +158,7 @@ describe('deleteProductController', () => {
     let req, res;
   
     beforeEach(() => {
-        jest.clearAllMocks();
+      jest.clearAllMocks();
       req = {
         params: {
           pid: 'test-product-id',
@@ -332,3 +337,36 @@ describe('updateProductController', () => {
       });
     });
   });
+
+
+describe('braintreeTokenController', () => {
+  let req, res;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    req = {};
+    res = {
+      status: jest.fn().mockReturnThis(),
+      send: jest.fn(),
+    };
+
+  });
+
+  it('should be able to generate client token', async () => {
+
+    const mockResponse = { clientToken : "mock" };
+    braintree.BraintreeGateway().clientToken.generate.mockImplementationOnce((_, cb) => cb(mockResponse, null));
+    await braintreeTokenController(req, res);
+     expect(res.send).toHaveBeenCalledWith(mockResponse);
+  });
+
+  it('should be able to handle any errors when generating client token', async () => {
+    const mockError = new Error('mockError');
+    braintree.BraintreeGateway().clientToken.generate.mockImplementationOnce((_, cb) => cb(mockError, null));
+
+    await braintreeTokenController(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.send).toHaveBeenCalledWith(mockError);
+  });
+});
