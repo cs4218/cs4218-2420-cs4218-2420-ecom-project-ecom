@@ -1,4 +1,4 @@
-import { createProductController, deleteProductController, updateProductController } from './productController';
+import { createProductController, deleteProductController, updateProductController, getProductController } from './productController';
 import productModel from '../models/productModel';
 import fs from 'fs';
 import slugify from 'slugify';
@@ -368,5 +368,84 @@ describe('braintreeTokenController', () => {
 
     expect(res.status).toHaveBeenCalledWith(500);
     expect(res.send).toHaveBeenCalledWith(mockError);
+  });
+});
+
+
+describe('getProductController', () => {
+  let req, res;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    req = {};
+    res = {
+      status: jest.fn().mockReturnThis(),
+      send: jest.fn(),
+    };
+  });
+
+  it('should fetch all products successfully', async () => {
+    const mockProducts = [
+      {
+        _id: '1',
+        name: 'Product 1',
+        description: 'Description 1',
+        category: 'Category 1',
+        price: 100,
+        quantity: 10,
+        shipping: true,
+        createdAt: '2024-09-06T17:57:19.963Z',
+        updatedAt: '2024-09-06T17:57:19.963Z',
+      },
+      {
+        _id: '2',
+        name: 'Product 2',
+        description: 'Description 2',
+        category: 'Category 2',
+        price: 200,
+        quantity: 20,
+        shipping: false,
+        createdAt: '2024-09-06T17:57:19.963Z',
+        updatedAt: '2024-09-06T17:57:19.963Z',
+      },
+    ];
+
+    productModel.find.mockImplementation(() => ({
+      populate: jest.fn().mockReturnThis(),
+      select: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
+      sort: jest.fn().mockResolvedValue(mockProducts),
+    }));
+
+    await getProductController(req, res);
+
+    expect(productModel.find).toHaveBeenCalledWith({});
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.send).toHaveBeenCalledWith({
+      success: true,
+      counTotal: mockProducts.length,
+      message: 'ALlProducts ',
+      products: mockProducts,
+    });
+  });
+
+  it('should handle errors when fetching products', async () => {
+    const error = new Error('Test Error');
+    productModel.find.mockImplementation(() => ({
+      populate: jest.fn().mockReturnThis(),
+      select: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
+      sort: jest.fn().mockRejectedValue(error),
+    }));
+
+    await getProductController(req, res);
+
+    expect(productModel.find).toHaveBeenCalledWith({});
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.send).toHaveBeenCalledWith({
+      success: false,
+      message: 'Erorr in getting products',
+      error: error.message,
+    });
   });
 });
