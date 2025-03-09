@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from "react";
-import Layout from "./../../components/Layout";
-import AdminMenu from "./../../components/AdminMenu";
-import toast from "react-hot-toast";
-import axios from "axios";
 import { Select } from "antd";
+import axios from "axios";
+import React, { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 import { useNavigate, useParams } from "react-router-dom";
+import AdminMenu from "./../../components/AdminMenu";
+import Layout from "./../../components/Layout";
 const { Option } = Select;
 
 const UpdateProduct = () => {
@@ -32,10 +32,15 @@ const UpdateProduct = () => {
       setPrice(data.product.price);
       setPrice(data.product.price);
       setQuantity(data.product.quantity);
-      setShipping(data.product.shipping);
+      setShipping(data.product.shipping ? "1" : "0");
       setCategory(data.product.category._id);
     } catch (error) {
       console.log(error);
+      if (error.response && error.response.status === 404) {
+        navigate("/not-found");
+      } else {
+        toast.error("Something went wrong")
+      }
     }
   };
   useEffect(() => {
@@ -59,10 +64,25 @@ const UpdateProduct = () => {
     getAllCategory();
   }, []);
 
+  const validateForm = () => {
+    if (!name.trim()) return "Name is required";
+    if (!description.trim()) return "Description is required";
+    if (!price || isNaN(price) || price < 0) return "Invalid price";
+    if (!quantity || isNaN(quantity) || quantity < 0) return "Invalid quantity";
+    if (!category) return "Category is required";
+    if (!shipping) return "Shipping is required";
+    return null; // No validation errors
+  };
+
   //create product function
   const handleUpdate = async (e) => {
     e.preventDefault();
     try {
+      const errorMessage = validateForm();
+      if (errorMessage) {
+        toast.error(errorMessage);
+        return;
+      }
       const productData = new FormData();
       productData.append("name", name);
       productData.append("description", description);
@@ -70,11 +90,12 @@ const UpdateProduct = () => {
       productData.append("quantity", quantity);
       photo && productData.append("photo", photo);
       productData.append("category", category);
-      const { data } = axios.put(
+      productData.append("shipping", shipping);
+      const { data } = await axios.put(
         `/api/v1/product/update-product/${id}`,
         productData
       );
-      if (data?.success) {
+      if (!data?.success) {
         toast.error(data?.message);
       } else {
         toast.success("Product Updated Successfully");
@@ -94,8 +115,13 @@ const UpdateProduct = () => {
       const { data } = await axios.delete(
         `/api/v1/product/delete-product/${id}`
       );
-      toast.success("Product DEleted Succfully");
-      navigate("/dashboard/admin/products");
+      if (data.success) {
+        toast.success("Product Deleted Successfully");
+        navigate("/dashboard/admin/products");
+      } else {
+        toast.error("Something went wrong");
+        return;
+      }
     } catch (error) {
       console.log(error);
       toast.error("Something went wrong");
@@ -208,7 +234,7 @@ const UpdateProduct = () => {
                   onChange={(value) => {
                     setShipping(value);
                   }}
-                  value={shipping ? "yes" : "No"}
+                  value={shipping ? "Yes" : "No"}
                 >
                   <Option value="0">No</Option>
                   <Option value="1">Yes</Option>
