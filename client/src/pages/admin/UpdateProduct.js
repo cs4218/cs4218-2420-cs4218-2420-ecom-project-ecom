@@ -51,7 +51,7 @@ const UpdateProduct = () => {
       }
     } catch (error) {
       console.log(error);
-      toast.error("Something wwent wrong in getting catgeory");
+      toast.error("Something went wrong in getting category");
     }
   };
 
@@ -63,6 +63,9 @@ const UpdateProduct = () => {
   const handleUpdate = async (e) => {
     e.preventDefault();
     try {
+      if (!quantity) {
+        toast.error("Quantity is Required");
+      }
       const productData = new FormData();
       productData.append("name", name);
       productData.append("description", description);
@@ -70,19 +73,20 @@ const UpdateProduct = () => {
       productData.append("quantity", quantity);
       photo && productData.append("photo", photo);
       productData.append("category", category);
-      const { data } = axios.put(
+      const { data } = await axios.put(
         `/api/v1/product/update-product/${id}`,
         productData
       );
       if (data?.success) {
-        toast.error(data?.message);
-      } else {
         toast.success("Product Updated Successfully");
         navigate("/dashboard/admin/products");
+      } else {
+        toast.error(data?.message);
+        
       }
     } catch (error) {
       console.log(error);
-      toast.error("something went wrong");
+      toast.error("Something went wrong");
     }
   };
 
@@ -94,7 +98,7 @@ const UpdateProduct = () => {
       const { data } = await axios.delete(
         `/api/v1/product/delete-product/${id}`
       );
-      toast.success("Product DEleted Succfully");
+      toast.success("Product Deleted Successfully");
       navigate("/dashboard/admin/products");
     } catch (error) {
       console.log(error);
@@ -121,6 +125,7 @@ const UpdateProduct = () => {
                   setCategory(value);
                 }}
                 value={category}
+                data-testid="selectCategory"
               >
                 {categories?.map((c) => (
                   <Option key={c._id} value={c._id}>
@@ -209,6 +214,7 @@ const UpdateProduct = () => {
                     setShipping(value);
                   }}
                   value={shipping ? "yes" : "No"}
+                  data-testid="selectShipping"
                 >
                   <Option value="0">No</Option>
                   <Option value="1">Yes</Option>
