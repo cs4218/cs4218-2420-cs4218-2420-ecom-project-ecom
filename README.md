@@ -46,4 +46,5 @@ npm test
 ### CI
 We have configured Github Actions to run Jest on Github
 
-<To do - Insert Link>
+Run link:
+https://github.com/cs4218/cs4218-2420-ecom-project-team06/actions/runs/13751806285/job/38453685571
