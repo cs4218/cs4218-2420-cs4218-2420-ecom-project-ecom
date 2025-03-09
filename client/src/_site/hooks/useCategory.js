@@ -7,13 +7,16 @@ export default function useCategory() {
   //get cat
   const getCategories = async () => {
     try {
-      const { data } = await axios.get("/api/v1/category/get-category");
-      setCategories(data?.category);
+      const response = await axios.get("/api/v1/category/get-category");
+      if (response && response.data) {
+        setCategories(response.data);
+      } else {
+        console.error('No data found in response');
+      }
     } catch (error) {
-      console.log(error);
+      console.error('Error fetching categories:', error);
     }
   };
-
   useEffect(() => {
     getCategories();
   }, []);
