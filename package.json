@@ -27,6 +27,7 @@
     "express": "^4.18.2",
     "express-formidable": "^1.2.0",
     "jsonwebtoken": "^9.0.2",
+    "mockingoose": "^2.16.2",
     "mongodb": "^6.14.2",
     "mongoose": "^8.12.1",
     "morgan": "^1.10.0",
@@ -57,6 +58,9 @@
     },
     "transformIgnorePatterns": [
       "/node_modules/(?!(styleMock\\.js)$)"
+    ],
+    "setupFiles": [
+      "<rootDir>/jest.setup.js"
     ]
   }
 }
