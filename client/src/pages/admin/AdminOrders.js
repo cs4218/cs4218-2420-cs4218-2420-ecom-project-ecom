@@ -25,6 +25,7 @@ const AdminOrders = () => {
       setOrders(data);
     } catch (error) {
       console.log(error);
+      toast.error(error.response.data.message); 
     }
   };
 
@@ -70,6 +71,7 @@ const AdminOrders = () => {
                       <td>
                         <Select
                           bordered={false}
+                          data-testid = "status"
                           onChange={(value) => handleChange(o._id, value)}
                           defaultValue={o?.status}
                         >
