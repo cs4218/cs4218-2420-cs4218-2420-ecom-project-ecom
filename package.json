@@ -24,15 +24,18 @@
     "cors": "^2.8.5",
     "date-fns": "^3.3.1",
     "dotenv": "^16.4.1",
+    "expect": "^29.7.0",
     "express": "^4.18.2",
     "express-formidable": "^1.2.0",
     "jsonwebtoken": "^9.0.2",
-    "mongodb": "^6.3.0",
-    "mongoose": "^8.1.2",
+    "mockingoose": "^2.16.2",
+    "mongodb": "^6.14.2",
+    "mongoose": "^8.12.1",
     "morgan": "^1.10.0",
     "nodemon": "^3.0.3",
     "react-icons": "^5.0.1",
-    "slugify": "^1.6.6"
+    "slugify": "^1.6.6",
+    "util": "^0.12.5"
   },
   "devDependencies": {
     "@babel/core": "^7.24.5",

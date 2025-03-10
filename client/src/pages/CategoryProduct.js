@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from "react";
-import Layout from "../components/Layout";
-import { useParams, useNavigate } from "react-router-dom";
-import "../styles/CategoryProductStyles.css";
 import axios from "axios";
+import React, { useEffect, useState } from "react";
+import toast from "react-hot-toast";
+import { useNavigate, useParams } from "react-router-dom";
+import Layout from "../components/Layout";
+import "../styles/CategoryProductStyles.css";
+
 const CategoryProduct = () => {
   const params = useParams();
   const navigate = useNavigate();
@@ -20,7 +22,12 @@ const CategoryProduct = () => {
       setProducts(data?.products);
       setCategory(data?.category);
     } catch (error) {
-      console.log(error);
+      if (error.response && error.response.status === 404) {
+        console.log("Category not found...");
+        navigate("/not-found");
+      } else {
+        toast.error("Something went wrong");
+      }
     }
   };
 
