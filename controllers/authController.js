@@ -14,6 +14,11 @@ export const registerController = async (req, res) => {
     if (!email) {
       return res.send({ message: "Email is Required" });
     }
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.send({ message: "Invalid email format" });
+    }
     if (!password) {
       return res.send({ message: "Password is Required" });
     }
@@ -56,7 +61,7 @@ export const registerController = async (req, res) => {
     console.log(error);
     res.status(500).send({
       success: false,
-      message: "Errro in Registeration",
+      message: "Error in Registeration",
       error,
     });
   }

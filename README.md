@@ -10,12 +10,12 @@ git clone https://github.com/cs4218/cs4218-2420-ecom-project-team06.git
 npm install
 ```
 
-4. Navigate to the frontend directory and install the frontend dependencies.
+3. Navigate to the frontend directory and install the frontend dependencies.
 ```
 cd client
 npm install
 ```
-5. Create a .env file in the root directory.
+4. Create a .env file in the root directory.
 ```
 PORT = 6060
 DEV_MODE = development
@@ -26,7 +26,7 @@ BRAINTREE_PUBLIC_KEY = <Insert your BrainTree public key>
 BRAINTREE_PRIVATE_KEY = <Insert your Braintree private key>
 ```
 
-6. To start the webapp, run the command
+5. To start the webapp, run the command
 ```
 npm run dev
 ```
@@ -46,4 +46,5 @@ npm test
 ### CI
 We have configured Github Actions to run Jest on Github
 
-<To do - Insert Link>
+Run link:
+https://github.com/cs4218/cs4218-2420-ecom-project-team06/actions/runs/13751806285/job/38453685571
