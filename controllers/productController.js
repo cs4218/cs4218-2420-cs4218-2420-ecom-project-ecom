@@ -1,11 +1,11 @@
-import productModel from "../models/productModel.js";
-import categoryModel from "../models/categoryModel.js";
-import orderModel from "../models/orderModel.js";
-
-import fs from "fs";
-import slugify from "slugify";
 import braintree from "braintree";
 import dotenv from "dotenv";
+import fs from "fs";
+import mongoose from "mongoose";
+import slugify from "slugify";
+import categoryModel from "../models/categoryModel.js";
+import orderModel from "../models/orderModel.js";
+import productModel from "../models/productModel.js";
 
 dotenv.config();
 
@@ -92,6 +92,14 @@ export const getSingleProductController = async (req, res) => {
       .findOne({ slug: req.params.slug })
       .select("-photo")
       .populate("category");
+
+    if (!product) {
+      return res.status(404).send({
+        success: false,
+        message: "Product not found"
+      });
+    }
+
     res.status(200).send({
       success: true,
       message: "Single Product Fetched",
@@ -111,12 +119,28 @@ export const getSingleProductController = async (req, res) => {
 export const productPhotoController = async (req, res) => {
   try {
     const product = await productModel.findById(req.params.pid).select("photo");
+    
+    if (!product) {
+      return res.status(404).send({
+        success: false,
+        message: "Product does not exist",
+      })
+    }
+    
     if (product.photo.data) {
       res.set("Content-type", product.photo.contentType);
       return res.status(200).send(product.photo.data);
     }
   } catch (error) {
     console.log(error);
+
+    if (error instanceof mongoose.Error.CastError) {
+      return res.status(400).send({
+        success: false,
+        message: "Invalid product id format"
+      });
+    }
+
     res.status(500).send({
       success: false,
       message: "Erorr while getting photo",
@@ -208,7 +232,7 @@ export const productFiltersController = async (req, res) => {
     console.log(error);
     res.status(400).send({
       success: false,
-      message: "Error WHile Filtering Products",
+      message: "Error While Filtering Products",
       error,
     });
   }
@@ -251,7 +275,7 @@ export const productListController = async (req, res) => {
     console.log(error);
     res.status(400).send({
       success: false,
-      message: "error in per page ctrl",
+      message: "Error in per page ctrl",
       error,
     });
   }
@@ -284,6 +308,7 @@ export const searchProductController = async (req, res) => {
 export const realtedProductController = async (req, res) => {
   try {
     const { pid, cid } = req.params;
+
     const products = await productModel
       .find({
         category: cid,
@@ -298,7 +323,14 @@ export const realtedProductController = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    res.status(400).send({
+  
+    if (error instanceof mongoose.Error.CastError) {
+      return res.status(400).send({
+        success: false,
+        message: "Invalid product id or category id format"
+      });
+    }
+    res.status(500).send({
       success: false,
       message: "error while geting related product",
       error,
@@ -310,6 +342,13 @@ export const realtedProductController = async (req, res) => {
 export const productCategoryController = async (req, res) => {
   try {
     const category = await categoryModel.findOne({ slug: req.params.slug });
+    if (!category) {
+      res.status(404).send({
+        success: false,
+        message: "Category does not exist"
+      });
+      return;
+    }
     const products = await productModel.find({ category }).populate("category");
     res.status(200).send({
       success: true,
@@ -318,7 +357,7 @@ export const productCategoryController = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    res.status(400).send({
+    res.status(500).send({
       success: false,
       error,
       message: "Error While Getting products",

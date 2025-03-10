@@ -31,7 +31,7 @@ const Orders = () => {
             <h1 className="text-center">All Orders</h1>
             {orders?.map((o, i) => {
               return (
-                <div className="border shadow">
+                <div key={i} className="border shadow" data-testid={`order-${i}`}>
                   <table className="table">
                     <thead>
                       <tr>
@@ -55,8 +55,9 @@ const Orders = () => {
                     </tbody>
                   </table>
                   <div className="container">
-                    {o?.products?.map((p, i) => (
-                      <div className="row mb-2 p-3 card flex-row" key={p._id}>
+                    {o?.products?.map((p, ind) => {
+                      return (
+                      <div className="row mb-2 p-3 card flex-row" key={p._id} data-testid={`product-${i}-${ind}`}>
                         <div className="col-md-4">
                           <img
                             src={`/api/v1/product/product-photo/${p._id}`}
@@ -72,7 +73,7 @@ const Orders = () => {
                           <p>Price : {p.price}</p>
                         </div>
                       </div>
-                    ))}
+                    )})}
                   </div>
                 </div>
               );

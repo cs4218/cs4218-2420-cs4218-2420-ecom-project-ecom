@@ -1,11 +1,14 @@
-import React, { useState, useEffect } from "react";
-import Layout from "./../components/Layout";
 import axios from "axios";
-import { useParams, useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import toast from "react-hot-toast";
+import { useNavigate, useParams } from "react-router-dom";
+import { useCart } from "../context/cart";
 import "../styles/ProductDetailsStyles.css";
+import Layout from "./../components/Layout";
 
 const ProductDetails = () => {
   const params = useParams();
+  const [cart, setCart] = useCart();
   const navigate = useNavigate();
   const [product, setProduct] = useState({});
   const [relatedProducts, setRelatedProducts] = useState([]);
@@ -21,9 +24,17 @@ const ProductDetails = () => {
         `/api/v1/product/get-product/${params.slug}`
       );
       setProduct(data?.product);
-      getSimilarProduct(data?.product._id, data?.product.category._id);
+      getSimilarProduct(
+        data?.product?._id,
+        data?.product?.category?._id);
     } catch (error) {
-      console.log(error);
+      console.log(error)
+      if (error.response && error.response.status === 404) {
+        console.log("Product not found. Redirecting...");
+        navigate("/not-found");
+      } else {
+        toast.error("Something went wrong");
+      }
     }
   };
   //get similar product
@@ -34,15 +45,34 @@ const ProductDetails = () => {
       );
       setRelatedProducts(data?.products);
     } catch (error) {
+      toast.error("Could not get similar products");
       console.log(error);
     }
   };
+
+  const handleAddToCart = () => {
+    /**
+     * if-condition prevents initial product state, {}
+     * to be added to cart which can occur if
+     * a user tries to add to cart before API response is returned
+     * and components are re-rendered
+     */
+    if (Object.keys(product).length !== 0) {
+      setCart([...cart, product]);
+      localStorage.setItem(
+        "cart",
+        JSON.stringify([...cart, product])
+      );
+      toast.success("Item Added to cart");
+    }
+  }
+
   return (
     <Layout>
       <div className="row container product-details">
         <div className="col-md-6">
           <img
-            src={`/api/v1/product/product-photo/${product._id}`}
+            src={product._id ? `/api/v1/product/product-photo/${product._id}` : ''}
             className="card-img-top"
             alt={product.name}
             height="300"
@@ -61,12 +91,17 @@ const ProductDetails = () => {
               currency: "USD",
             })}
           </h6>
-          <h6>Category : {product?.category?.name}</h6>
-          <button class="btn btn-secondary ms-1">ADD TO CART</button>
+          <h6>Category : {product?.category ? product.category.name : "Unknown" }</h6>
+          <button
+            className="btn btn-secondary ms-1"
+            onClick={handleAddToCart}
+          >
+            ADD TO CART
+          </button>
         </div>
       </div>
       <hr />
-      <div className="row container similar-products">
+      <div className="row container similar-products" data-testid="similar-container">
         <h4>Similar Products ➡️</h4>
         {relatedProducts.length < 1 && (
           <p className="text-center">No Similar Products found</p>
