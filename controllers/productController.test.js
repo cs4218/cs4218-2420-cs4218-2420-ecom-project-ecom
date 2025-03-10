@@ -2,6 +2,7 @@
 import mongoose from "mongoose";
 import categoryModel from "../models/categoryModel.js";
 import productModel from '../models/productModel.js';
+import orderModel from '../models/productModel.js';
 import {
   getSingleProductController,
   productCategoryController,
@@ -13,8 +14,6 @@ import {
   getProductController,
   braintreeTokenController,
   brainTreePaymentController, 
-  createProductController, 
-  deleteProductController, 
   productFiltersController,
   productListController, 
   productCountController, 
