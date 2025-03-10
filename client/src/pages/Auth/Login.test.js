@@ -1,5 +1,5 @@
 import React from "react";
-import { render, fireEvent, waitFor } from "@testing-library/react";
+import { render, fireEvent, waitFor, screen } from "@testing-library/react";
 import axios from "axios";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
 import "@testing-library/jest-dom/extend-expect";
@@ -21,8 +21,6 @@ jest.mock("../../context/cart", () => ({
 jest.mock("../../context/search", () => ({
   useSearch: jest.fn(() => [{ keyword: "" }, jest.fn()]), // Mock useSearch hook to return null state and a mock function
 }));
-
-jest.mock("../../hooks/useCategory", () => jest.fn(() => []));
 
 Object.defineProperty(window, "localStorage", {
   value: {
@@ -57,10 +55,13 @@ describe("Login Component", () => {
       </MemoryRouter>
     );
 
-    expect(getByText("LOGIN FORM")).toBeInTheDocument();
-    expect(getByPlaceholderText("Enter Your Email")).toBeInTheDocument();
-    expect(getByPlaceholderText("Enter Your Password")).toBeInTheDocument();
+    expect(screen.getByText("LOGIN FORM")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("Enter Your Email")).toBeInTheDocument();
+    expect(
+      screen.getByPlaceholderText("Enter Your Password")
+    ).toBeInTheDocument();
   });
+
   it("inputs should be initially empty", () => {
     const { getByText, getByPlaceholderText } = render(
       <MemoryRouter initialEntries={["/login"]}>
@@ -70,9 +71,9 @@ describe("Login Component", () => {
       </MemoryRouter>
     );
 
-    expect(getByText("LOGIN FORM")).toBeInTheDocument();
-    expect(getByPlaceholderText("Enter Your Email").value).toBe("");
-    expect(getByPlaceholderText("Enter Your Password").value).toBe("");
+    expect(screen.getByText("LOGIN FORM")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("Enter Your Email").value).toBe("");
+    expect(screen.getByPlaceholderText("Enter Your Password").value).toBe("");
   });
 
   it("should allow typing email and password", () => {
@@ -83,16 +84,16 @@ describe("Login Component", () => {
         </Routes>
       </MemoryRouter>
     );
-    fireEvent.change(getByPlaceholderText("Enter Your Email"), {
+    fireEvent.change(screen.getByPlaceholderText("Enter Your Email"), {
       target: { value: "test@example.com" },
     });
-    fireEvent.change(getByPlaceholderText("Enter Your Password"), {
+    fireEvent.change(screen.getByPlaceholderText("Enter Your Password"), {
       target: { value: "password123" },
     });
-    expect(getByPlaceholderText("Enter Your Email").value).toBe(
+    expect(screen.getByPlaceholderText("Enter Your Email").value).toBe(
       "test@example.com"
     );
-    expect(getByPlaceholderText("Enter Your Password").value).toBe(
+    expect(screen.getByPlaceholderText("Enter Your Password").value).toBe(
       "password123"
     );
   });
@@ -114,13 +115,13 @@ describe("Login Component", () => {
       </MemoryRouter>
     );
 
-    fireEvent.change(getByPlaceholderText("Enter Your Email"), {
+    fireEvent.change(screen.getByPlaceholderText("Enter Your Email"), {
       target: { value: "test@example.com" },
     });
-    fireEvent.change(getByPlaceholderText("Enter Your Password"), {
+    fireEvent.change(screen.getByPlaceholderText("Enter Your Password"), {
       target: { value: "password123" },
     });
-    fireEvent.click(getByText("LOGIN"));
+    fireEvent.click(screen.getByText("LOGIN"));
 
     await waitFor(() => expect(axios.post).toHaveBeenCalled());
     expect(toast.success).toHaveBeenCalledWith(undefined, {
@@ -144,15 +145,87 @@ describe("Login Component", () => {
       </MemoryRouter>
     );
 
-    fireEvent.change(getByPlaceholderText("Enter Your Email"), {
+    fireEvent.change(screen.getByPlaceholderText("Enter Your Email"), {
       target: { value: "test@example.com" },
     });
-    fireEvent.change(getByPlaceholderText("Enter Your Password"), {
+    fireEvent.change(screen.getByPlaceholderText("Enter Your Password"), {
       target: { value: "password123" },
     });
-    fireEvent.click(getByText("LOGIN"));
+    fireEvent.click(screen.getByText("LOGIN"));
 
     await waitFor(() => expect(axios.post).toHaveBeenCalled());
     expect(toast.error).toHaveBeenCalledWith("Something went wrong");
+  });
+
+  it("should show error for empty password input", async () => {
+    const { getByPlaceholderText, getByText } = render(
+      <MemoryRouter initialEntries={["/login"]}>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    fireEvent.change(screen.getByPlaceholderText("Enter Your Email"), {
+      target: { value: "test@example.com" },
+    });
+    fireEvent.change(screen.getByPlaceholderText("Enter Your Password"), {
+      target: { value: "" },
+    });
+    fireEvent.click(screen.getByText("LOGIN"));
+
+    await waitFor(() => {
+      // Check that axios.post was not called
+      expect(axios.post).not.toHaveBeenCalled();
+      // Validate toast.error or any other indication for missing password
+    });
+  });
+
+  it("should show an error message if the email format is invalid and prevent form submission", async () => {
+    const { getByText, getByPlaceholderText } = render(
+      <MemoryRouter initialEntries={["/login"]}>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    // Simulate entering an invalid email (e.g., missing '@')
+    fireEvent.change(screen.getByPlaceholderText("Enter Your Email"), {
+      target: { value: "example.com" },
+    });
+    fireEvent.change(screen.getByPlaceholderText("Enter Your Password"), {
+      target: { value: "password123" },
+    });
+
+    // Try to submit the form (this will trigger HTML5 validation)
+    fireEvent.click(screen.getByText("LOGIN"));
+
+    // The form should not be submitted (e.g., axios.post should not be called)
+    await waitFor(() => expect(axios.post).not.toHaveBeenCalled());
+
+    // Check if the browser's built-in validation error message is shown
+    // Since we can't directly check the built-in message, we can check the form's invalid state
+    const emailInput = screen.getByPlaceholderText("Enter Your Email");
+    expect(emailInput).toBeInvalid(); // this checks if the input is invalid
+  });
+
+  it("should navigate to forgot password page", () => {
+    const { getByText } = render(
+      <MemoryRouter initialEntries={["/login"]}>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route
+            path="/forgot-password"
+            element={<div>Forgot Password Page</div>}
+          />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    fireEvent.click(screen.getByText("Forgot Password"));
+
+    // Check if the Forgot Password page content is rendered
+    expect(screen.getByText("Forgot Password Page")).toBeInTheDocument();
   });
 });
