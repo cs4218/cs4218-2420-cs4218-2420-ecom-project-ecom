@@ -88,7 +88,7 @@ describe('AdminOrders Component', () => {
       expect(screen.getByText('Product 1')).toBeInTheDocument();
     });
   });
-/** 
+ 
   // Test 3: Updates order status
   it('updates order status when dropdown is changed', async () => {
     axios.get.mockResolvedValueOnce({ data: mockOrders });
@@ -147,5 +147,4 @@ describe('AdminOrders Component', () => {
         expect(axios.put).toHaveBeenCalledWith("/api/v1/auth/order-status/order1", { status: "Shipped" });
     });
   });
-  */
 });
