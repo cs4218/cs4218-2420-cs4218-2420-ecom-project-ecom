@@ -2,7 +2,7 @@ import { jest } from "@jest/globals";
 import { getOrdersController, updateProfileController, getAllOrdersController, orderStatusController, registerController } from "./authController";
 import userModel from "../models/userModel";
 import orderModel from "../models/orderModel";
-import hashPassword from "../helpers/authHelper";
+import {hashPassword} from "../helpers/authHelper";
 
 jest.mock("../models/userModel.js");
 jest.mock("../models/orderModel.js");
