@@ -1,0 +1,9 @@
+{
+  "name": "CS 4218 Test Account",
+  "email": "cs4218@test.com",
+  "password": "$2b$10$//wWsN./fEX1WiipH57HG.SAwgkYv1MRrPSkpXM38Dy5seOEhCoUy",
+  "phone": "81234567",
+  "address": "1 Computing Drive",
+  "answer": "password is cs4218@test.com",
+  "role": 1
+}

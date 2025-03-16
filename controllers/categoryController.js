@@ -63,6 +63,12 @@ export const updateCategoryController = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
+    if (error.code && error.code === 11000) {
+      return res.status(400).send({
+        success: false,
+        message: "Category already exists"
+      })
+    }
     res.status(500).send({
       success: false,
       error,
