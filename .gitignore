@@ -8,5 +8,4 @@ node_modules
 package-lock.json
 package.json
 /tests-examples/
-/tests/
 sonar-project.properties
