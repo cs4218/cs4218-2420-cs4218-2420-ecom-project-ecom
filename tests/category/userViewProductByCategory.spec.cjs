@@ -25,7 +25,13 @@ test("Any user can view products in a category", async ({ page }) => {
     await page.waitForTimeout(1000)
 
     await expect(page).toHaveURL(`http://localhost:3000/category/${TEST_CATEGORY.toLowerCase()}`)
-    await page.waitForSelector(".card-title");
     await expect(page.getByRole("heading", {name: "Laptop" })).toBeVisible();
   })
+})
+
+test("Invalid category leads to 404", async ({ page }) => {
+  await page.goto(`http://localhost:3000/category/not-exist`);
+  await page.waitForTimeout(100);
+
+  await expect(page.getByText("404")).toBeVisible();
 })

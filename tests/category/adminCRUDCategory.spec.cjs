@@ -5,8 +5,8 @@ const UPDATED_CATEGORY_NAME = `Updated-${NEW_CATEGORY_NAME}`
 
 const AUTH_URL = "http://localhost:3000/login"
 const ADMIN_USER = {
-  email: 'cs4218@test.com',
-  password: 'cs4218@test.com', 
+  email: 'admin@test.sg',
+  password: 'admin@test.sg', 
 }
 
 const login = async (page) => {
