@@ -246,7 +246,7 @@ describe("updateCategoryController Integration Test", () => {
 
   it.each(testCases)
     ("$name", async ({ inputData, setupAuth, expectedStatus, expectedBody }) => {
-      let req = request(app).put(`/update-category/${testCategory._id}`)
+      let req = request(app).put(`/update-category/${testCategory._id.toHexString()}`)
       req = setupAuth(req);
 
       const response = await req.send(inputData);
@@ -280,7 +280,7 @@ describe("deleteCategoryController Integration Test", () => {
 
   const testCases = [
     {
-      name: "Successfully updates Category",
+      name: "Successfully delete Category",
       supplyUriParam: () => testCategory._id,
       setupAuth: (req) => addAuthorization(req, adminUserId),
       expectedStatus: 200,
