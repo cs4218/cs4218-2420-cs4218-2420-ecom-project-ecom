@@ -195,7 +195,6 @@ export const updateProfileController = async (req, res) => {
       updatedUser,
     });
   } catch (error) {
-    console.log(error);
     res.status(400).send({
       success: false,
       message: "Error While Update profile",
@@ -216,7 +215,7 @@ export const getOrdersController = async (req, res) => {
     console.log(error);
     res.status(500).send({
       success: false,
-      message: "Error While Geting Orders",
+      message: "Error While Getting Orders",
       error,
     });
   }
@@ -231,10 +230,9 @@ export const getAllOrdersController = async (req, res) => {
       .sort({ createdAt: -1 });
     res.json(orders);
   } catch (error) {
-    console.log(error);
     res.status(500).send({
       success: false,
-      message: "Error While Geting Orders",
+      message: "Error While Getting Orders",
       error,
     });
   }
