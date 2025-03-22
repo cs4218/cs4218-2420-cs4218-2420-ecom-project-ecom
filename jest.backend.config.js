@@ -29,4 +29,7 @@ export default {
       functions: 100,
     },
   },
+  setupFilesAfterEnv: [
+    "<rootDir>/dotenv-config.js",
+  ]
 };
