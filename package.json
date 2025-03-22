@@ -3,14 +3,16 @@
   "version": "1.0.0",
   "description": "ecommerce rest api",
   "main": "server.js",
-  "type": "module",
   "scripts": {
     "start": "node server.js",
     "server": "nodemon server.js",
     "client": "npm start --prefix ./client",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
-    "sonarqube": "sonarqube-scanner",
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
+    "sonarqube": "sonar-scanner",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test:frontend": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.frontend.config.js",
+    "test:fast-frontend": "start-server-and-test 'npm run server' http://localhost:6060 'node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.frontend.config.js'",
+    "test:backend": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.backend.config.js"
   },
   "keywords": [],
   "author": "RP",
@@ -27,6 +29,7 @@
     "express-formidable": "^1.2.0",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.3.0",
+    "mongodb-memory-server": "^10.1.4",
     "mongoose": "^8.1.2",
     "morgan": "^1.10.0",
     "nodemon": "^3.0.3",
@@ -34,30 +37,17 @@
     "slugify": "^1.6.6"
   },
   "devDependencies": {
-
     "@babel/core": "^7.24.5",
-    "@babel/preset-env": "^7.24.5",
+    "@babel/preset-env": "^7.26.9",
     "@babel/preset-react": "^7.24.1",
+    "@playwright/test": "^1.44.0",
+    "@types/node": "^20.12.12",
     "babel-jest": "^29.7.0",
     "identity-obj-proxy": "^3.0.0",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
-
-    "@playwright/test": "^1.44.0",
-    "@types/node": "^20.12.12",
-
-    "sonarqube-scanner": "^3.3.0"
-  },
-  "jest": {
-    "testEnvironment": "jest-environment-jsdom",
-    "transform": {
-      "^.+\\.jsx?$": "babel-jest"
-    },
-    "moduleNameMapper": {
-      "\\.(css|scss)$": "identity-obj-proxy"
-    },
-    "transformIgnorePatterns": [
-      "/node_modules/(?!(styleMock\\.js)$)"
-    ]
+    "sonarqube-scanner": "^3.3.0",
+    "start-server-and-test": "^2.0.11",
+    "supertest": "^7.0.0"
   }
 }

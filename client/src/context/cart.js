@@ -1,4 +1,4 @@
-import { useState, useContext, createContext, useEffect } from "react";
+import React, { useState, useContext, createContext, useEffect } from "react";
 
 const CartContext = createContext();
 const CartProvider = ({ children }) => {
@@ -6,7 +6,15 @@ const CartProvider = ({ children }) => {
 
   useEffect(() => {
     let existingCartItem = localStorage.getItem("cart");
-    if (existingCartItem) setCart(JSON.parse(existingCartItem));
+    if (existingCartItem) {
+      try {
+        const parsedCartItem = JSON.parse(existingCartItem);
+        if (!Array.isArray(parsedCartItem)) throw new Error("Cart is not an array");
+        setCart(parsedCartItem);
+      } catch (error) {
+        console.log(error);
+      }
+    }
   }, []);
 
   return (
