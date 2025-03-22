@@ -14,11 +14,13 @@ test.describe('Filter Products', () => {
     await expect(page.getByRole('heading', { name: RANDOM_CLOTHING_NAME })).toBeVisible();
     await expect(page.getByTestId(/^product-/)).toHaveCount(1);
     await page.getByRole('checkbox', { name: 'Clothing' }).uncheck();
+    await expect(page.getByRole('heading', { name: RANDOM_BOOK_NAME })).toBeVisible();
     await expect(page.getByTestId(/^product-/)).toHaveCount(6);
   });
 
   test('should fiter based on multiple category', async ({ page }) => {
     await page.getByRole('checkbox', { name: 'Clothing' }).check();
+    await expect(page.getByRole('heading', { name: RANDOM_BOOK_NAME })).not.toBeVisible();
     await page.getByRole('checkbox', { name: 'Book' }).check();
     await expect(page.getByRole('heading', { name: RANDOM_BOOK_NAME })).toBeVisible();
     await expect(page.getByRole('heading', { name: RANDOM_CLOTHING_NAME })).toBeVisible();
@@ -45,6 +47,7 @@ test.describe('Filter Products', () => {
     await page.getByRole('checkbox', { name: 'Book' }).check();
     await expect(page.getByRole('heading', { name: RANDOM_BOTH_FILTER_NAME })).toBeVisible();
     await page.getByRole('radio', { name: '$40 to' }).check();
+    await expect(page.getByRole('heading', { name: RANDOM_CLOTHING_NAME })).not.toBeVisible();
     await expect(page.getByRole('heading', { name: RANDOM_BOTH_FILTER_NAME })).toBeVisible();
     await expect(page.getByTestId(/^product-/)).toHaveCount(1);
     await page.getByRole('button', { name: 'RESET FILTERS' }).click();
@@ -56,7 +59,7 @@ test.describe('Filter Products', () => {
     await page.getByRole('checkbox', { name: 'Clothing' }).check();
     await expect(page.getByRole('heading', { name: RANDOM_BOTH_FILTER_NAME })).not.toBeVisible();
     await page.getByRole('radio', { name: '$40 to' }).check();
-    await expect(page.getByRole('heading', { name: RANDOM_BOTH_FILTER_NAME })).not.toBeVisible();
+    await expect(page.getByRole('heading', { name: RANDOM_CLOTHING_NAME })).not.toBeVisible();
     await expect(page.getByTestId(/^product-/)).toHaveCount(0);
     //Ensure LOAD MORE is not displayed
     await expect(page.locator('button:has-text("Loadmore")')).toHaveCount(0);

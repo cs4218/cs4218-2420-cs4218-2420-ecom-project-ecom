@@ -185,7 +185,7 @@ describe("Get Orders Controller Test", () => {
     expect(res.status).toHaveBeenCalledWith(500);
     expect(res.send).toHaveBeenCalledWith({
       success: false,
-      message: "Error While Geting Orders",
+      message: "Error While Getting Orders",
       error: Error("Testing Error"),
     })
   });
@@ -233,7 +233,7 @@ describe("Get All Orders Controller Test", () => {
     expect(res.status).toHaveBeenCalledWith(500);
     expect(res.send).toHaveBeenCalledWith({
       success: false,
-      message: "Error While Geting Orders",
+      message: "Error While Getting Orders",
       error: Error("Testing Error"),
     })
   });

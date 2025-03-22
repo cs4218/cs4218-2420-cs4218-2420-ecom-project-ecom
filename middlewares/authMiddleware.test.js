@@ -81,7 +81,7 @@ describe('isAdmin', () => {
         expect(res.status).toHaveBeenCalledWith(401);
         expect(res.send).toHaveBeenCalledWith(({
             success: false,
-            message: 'UnAuthorized Access'
+            message: 'Unauthorized Access'
         }));
         expect(next).toHaveBeenCalledTimes(0);
     });
