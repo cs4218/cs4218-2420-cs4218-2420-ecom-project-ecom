@@ -9,10 +9,11 @@
     "server": "nodemon server.js",
     "client": "npm start --prefix ./client",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
-    "sonarqube": "sonar-scanner",
-    "test": "node node_modules/jest/bin/jest.js --coverage",
+    "sonarqube": "sonarqube-scanner",
+    "test": "npm run test:frontend; npm run test:backend",
     "test:frontend": "node node_modules/jest/bin/jest.js --config jest.frontend.config.js",
-    "test:backend": "node node_modules/jest/bin/jest.js --config jest.backend.config.js"
+    "test:backend": "node node_modules/jest/bin/jest.js --config jest.backend.config.js --verbose",
+    "test:e2e": "npx playwright test --ui"
   },
   "keywords": [],
   "author": "RP",
@@ -31,11 +32,13 @@
     "jsonwebtoken": "^9.0.2",
     "mockingoose": "^2.16.2",
     "mongodb": "^6.14.2",
+    "mongodb-memory-server": "^10.1.4",
     "mongoose": "^8.12.1",
     "morgan": "^1.10.0",
     "nodemon": "^3.0.3",
     "react-icons": "^5.0.1",
     "slugify": "^1.6.6",
+    "supertest": "^7.0.0",
     "util": "^0.12.5"
   },
   "devDependencies": {
