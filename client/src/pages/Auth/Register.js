@@ -4,6 +4,9 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import "../../styles/AuthStyles.css";
+import { useAuth } from "../../context/auth";
+import Spinner from "../../components/Spinner";
+
 const Register = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -12,6 +15,7 @@ const Register = () => {
   const [address, setAddress] = useState("");
   const [DOB, setDOB] = useState("");
   const [answer, setAnswer] = useState("");
+  const [auth] = useAuth();
   const navigate = useNavigate();
 
   // form function
@@ -28,16 +32,22 @@ const Register = () => {
         answer,
       });
       if (res && res.data.success) {
-        toast.success("Register Successfully, please login");
+        toast.success("Registered successfully, please login");
         navigate("/login");
       } else {
         toast.error(res.data.message);
       }
     } catch (error) {
       console.log(error);
-      toast.error("Something went wrong");
+      toast.error(error.response?.data?.message ?? "Something went wrong");
     }
   };
+
+
+  if (auth?.token) {
+    // Already logged in. Redirect to homepage.
+    return ( <Spinner path="/" /> );
+  }
 
   return (
     <Layout title="Register - Ecommerce App">

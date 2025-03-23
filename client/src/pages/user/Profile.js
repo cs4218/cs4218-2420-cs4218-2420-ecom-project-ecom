@@ -16,6 +16,7 @@ const Profile = () => {
 
   //get user data
   useEffect(() => {
+    if (!auth?.user) return;
     const { email, name, phone, address } = auth?.user;
     setName(name);
     setPhone(phone);
@@ -34,7 +35,7 @@ const Profile = () => {
         phone,
         address,
       });
-      if (data?.errro) {
+      if (data?.error) {
         toast.error(data?.error);
       } else {
         setAuth({ ...auth, user: data?.updatedUser });
