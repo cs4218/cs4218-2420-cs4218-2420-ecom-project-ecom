@@ -46,7 +46,7 @@ describe('createCategoryController', () => {
     });
   });
 
-  it("should return 200 when category already exists", async () => {
+  it("should return 400 when category already exists", async () => {
     req.body = { name: "Electronics" };
     categoryModel.findOne.mockResolvedValue(mockDoc);
 
@@ -54,7 +54,7 @@ describe('createCategoryController', () => {
 
     expect(categoryModel.findOne).toHaveBeenCalledWith({ name: "Electronics" });
     expect(categoryModel.create).not.toHaveBeenCalled();
-    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.status).toHaveBeenCalledWith(400);
     expect(res.send).toHaveBeenCalledWith({
       success: false,
       message: "Category Already Exisits",

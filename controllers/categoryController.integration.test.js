@@ -168,7 +168,7 @@ describe("createCategoryController Integration Test", () => {
       name: "Duplicate Category",
       inputData: { name: "Electronics" },
       setupAuth: (req) => addAuthorization(req, adminUserId),
-      expectedStatus: 200,
+      expectedStatus: 400,
       expectedBody: {
         success: false,
         message: "Category Already Exisits"
