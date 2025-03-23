@@ -3,7 +3,11 @@ import express from "express";
 import bodyParser from "body-parser";
 import mongoose from "mongoose";
 import { MongoMemoryServer } from "mongodb-memory-server";
-import { loginController } from "../../../../controllers/authController.js";
+import {
+  loginController,
+  forgotPasswordController,
+  testController,
+} from "../../../../controllers/authController.js";
 import userModel from "../../../../models/userModel.js";
 import dotenv from "dotenv";
 import { hashPassword } from "../../../../helpers/authHelper.js";
@@ -15,11 +19,13 @@ app.use(bodyParser.json());
 
 // Register the login route
 app.post("/api/auth/login", loginController);
+app.post("/api/auth/forgot-password", forgotPasswordController);
+app.get("/api/auth/protected", testController);
 
 let mongoServer;
 
-// Connect to an in-memory MongoDB instance before tests.
-beforeAll(async () => {
+// Connect to an in-memory MongoDB instance before each test.
+beforeEach(async () => {
   mongoServer = await MongoMemoryServer.create();
   const uri = mongoServer.getUri();
   await mongoose.connect(uri);
@@ -39,8 +45,8 @@ beforeAll(async () => {
   await userModel.create(userData); // This inserts the user data directly into the in-memory database
 });
 
-// Disconnect and stop the in-memory MongoDB instance after all tests.
-afterAll(async () => {
+// Disconnect and stop the in-memory MongoDB instance after each test.
+afterEach(async () => {
   await mongoose.disconnect();
   await mongoServer.stop();
 });
@@ -49,6 +55,7 @@ describe("Login Controller Integration Tests", () => {
   const userData = {
     email: "ddd@email.com",
     password: "password123",
+    answer:"Soccer"
   };
 
   it("should login an existing user", async () => {
@@ -146,4 +153,5 @@ describe("Login Controller Integration Tests", () => {
     expect(res.body.success).toBe(false);
     expect(res.body.message).toMatch(/Email is not registered/i);
   });
+
 });
