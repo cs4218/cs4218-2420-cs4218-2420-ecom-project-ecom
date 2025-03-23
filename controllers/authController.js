@@ -226,8 +226,8 @@ export const getAllOrdersController = async (req, res) => {
   try {
     const orders = await orderModel
       .find({})
-      .populate("products", "-photo")
-      .populate("buyer", "name")
+      .populate("products", "-photo") // Populate products
+      .populate("buyer", "name") // Populate buyer
       .sort({ createdAt: -1 });
     res.json(orders);
   } catch (error) {
@@ -239,18 +239,43 @@ export const getAllOrdersController = async (req, res) => {
     });
   }
 };
-
-//order status
 export const orderStatusController = async (req, res) => {
   try {
     const { orderId } = req.params;
     const { status } = req.body;
-    const orders = await orderModel.findByIdAndUpdate(
+
+    // Validate that status is provided
+    if (!status) {
+      return res.status(400).send({
+        success: false,
+        message: "Status is required",
+      });
+    }
+
+    // Validate that status is one of the allowed values
+    const allowedStatuses = ["Not Process", "Processing", "Shipped", "delivered", "cancel"];
+    if (!allowedStatuses.includes(status)) {
+      return res.status(400).send({
+        success: false,
+        message: "Invalid status value",
+      });
+    }
+
+    // Check if the order exists
+    const order = await orderModel.findById(orderId);
+    if (!order) {
+      return res.status(404).send({
+        success: false,
+        message: "Order not found",
+      });
+    }
+
+    const updatedOrder = await orderModel.findByIdAndUpdate(
       orderId,
       { status },
       { new: true }
     );
-    res.json(orders);
+    res.json(updatedOrder);
   } catch (error) {
     console.log(error);
     res.status(500).send({
