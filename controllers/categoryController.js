@@ -38,6 +38,7 @@ export const updateCategoryController = async (req, res) => {
     const { name } = req.body;
     if (!name.trim()) {
       return res.status(400).send({
+        success: false,
         message: "Name is required"
       });
     }

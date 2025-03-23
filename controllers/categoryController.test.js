@@ -136,7 +136,7 @@ describe('updateCategoryController', () => {
 
     expect(categoryModel.findByIdAndUpdate).not.toHaveBeenCalled();
     expect(res.status).toBeCalledWith(400);
-    expect(res.send).toBeCalledWith({ message: "Name is required" });
+    expect(res.send).toBeCalledWith({ success: false, message: "Name is required" });
   });
 
   it('should return 404 for non-existent category', async () => {

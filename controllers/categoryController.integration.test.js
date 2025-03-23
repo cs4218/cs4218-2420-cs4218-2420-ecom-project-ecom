@@ -233,6 +233,16 @@ describe("updateCategoryController Integration Test", () => {
       }
     },
     {
+      name: "Malformed update",
+      inputData: { name: "  " },
+      setupAuth: (req) => addAuthorization(req, adminUserId),
+      expectedStatus: 400,
+      expectedBody: {
+        success: false,
+        message: "Name is required",
+      }
+    },
+    {
       name: "Prevent duplicate category",
       inputData: { name: "Book" },
       setupAuth: (req) => addAuthorization(req, adminUserId),
