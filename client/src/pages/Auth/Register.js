@@ -29,7 +29,10 @@ const Register = () => {
       });
       if (res && res.data.success) {
         toast.success("Register Successfully, please login");
-        navigate("/login");
+        setTimeout(() => {
+          toast.dismiss(); // Clear all existing toasts
+          navigate("/login");
+        }, 1000);
       } else {
         toast.error(res.data.message);
       }
@@ -63,7 +66,7 @@ const Register = () => {
               onChange={(e) => setEmail(e.target.value)}
               className="form-control"
               id="exampleInputEmail1"
-              placeholder="Enter Your Email "
+              placeholder="Enter Your Email"
               required
             />
           </div>
