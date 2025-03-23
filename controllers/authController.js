@@ -6,7 +6,7 @@ import JWT from "jsonwebtoken";
 
 export const registerController = async (req, res) => {
   try {
-    const { name, email, password, phone, address, answer } = req.body;
+    const { name, email, password, phone, address, DOB, answer } = req.body;
     //validations
     if (!name) {
       return res.send({ error: "Name is Required" });
@@ -20,11 +20,25 @@ export const registerController = async (req, res) => {
     if (!phone) {
       return res.send({ message: "Phone no is Required" });
     }
+    if (!/^\d{2,15}$/.test(phone)) {
+      return res.status(400).send({ message: "Phone number must not exceed 15 digits and can contain only numbers" });
+    }
     if (!address) {
       return res.send({ message: "Address is Required" });
     }
+    if (!DOB) {
+      return res.send({ message: "Date of Birth is Required" });
+    }
+    if (new Date(DOB) > new Date()) {
+      return res.status(400).send({ message: "Date of Birth cannot be in the future" });
+    }
     if (!answer) {
       return res.send({ message: "Answer is Required" });
+    }
+    // check invalid email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.send({ message: "Valid email is Required" });
     }
     //check user
     const exisitingUser = await userModel.findOne({ email });
@@ -32,7 +46,7 @@ export const registerController = async (req, res) => {
     if (exisitingUser) {
       return res.status(200).send({
         success: false,
-        message: "Already Register please login",
+        message: "Already registered, please login",
       });
     }
     //register user
@@ -49,14 +63,14 @@ export const registerController = async (req, res) => {
 
     res.status(201).send({
       success: true,
-      message: "User Register Successfully",
+      message: "User Registered Successfully",
       user,
     });
   } catch (error) {
     console.log(error);
     res.status(500).send({
       success: false,
-      message: "Errro in Registeration",
+      message: "Error in Registration",
       error,
     });
   }
@@ -78,7 +92,7 @@ export const loginController = async (req, res) => {
     if (!user) {
       return res.status(404).send({
         success: false,
-        message: "Email is not registerd",
+        message: "Email is not registered",
       });
     }
     const match = await comparePassword(password, user.password);
@@ -121,13 +135,13 @@ export const forgotPasswordController = async (req, res) => {
   try {
     const { email, answer, newPassword } = req.body;
     if (!email) {
-      res.status(400).send({ message: "Emai is required" });
+      return res.status(400).send({ message: "Email is required" });
     }
     if (!answer) {
-      res.status(400).send({ message: "answer is required" });
+      return res.status(400).send({ message: "Answer is required" });
     }
     if (!newPassword) {
-      res.status(400).send({ message: "New Password is required" });
+      return res.status(400).send({ message: "New Password is required" });
     }
     //check
     const user = await userModel.findOne({ email, answer });
@@ -169,32 +183,88 @@ export const updateProfileController = async (req, res) => {
   try {
     const { name, email, password, address, phone } = req.body;
     const user = await userModel.findById(req.user._id);
-    //password
-    if (password && password.length < 6) {
-      return res.json({ error: "Passsword is required and 6 character long" });
+    
+    // Validation checks
+    if (!name || name.trim() === '') {
+      return res.status(400).send({
+        success: false,
+        message: "Name is required"
+      });
     }
-    const hashedPassword = password ? await hashPassword(password) : undefined;
-    const updatedUser = await userModel.findByIdAndUpdate(
-      req.user._id,
-      {
-        name: name || user.name,
-        password: hashedPassword || user.password,
-        phone: phone || user.phone,
-        address: address || user.address,
-      },
-      { new: true }
-    );
+    
+    if (!email || email.trim() === '') {
+      return res.status(400).send({
+        success: false,
+        message: "Email is required"
+      });
+    }
+
+    if (password !== undefined) {
+      if (password === '' || password.trim() === '') {
+        return res.status(400).send({
+          success: false,
+          message: "Password cannot be empty. Either provide a valid password or remove this field"
+        });
+      }
+      
+      if (password.length < 6) {
+        return res.status(400).send({
+          success: false,
+          message: "Password must be at least 6 characters long"
+        });
+      }
+    }
+    
+    if (!phone || phone.trim() === '') {
+      return res.status(400).send({
+        success: false,
+        message: "Phone number is required"
+      });
+    }
+    
+    if (!address || address.trim() === '') {
+      return res.status(400).send({
+        success: false,
+        message: "Address is required"
+      });
+    }
+    
+    // Hash password if provided, otherwise keep existing
+    // Only hash and update password if a valid one was provided
+const hashedPassword = password && password.trim() !== '' 
+? await hashPassword(password) 
+: undefined;
+
+// Update object construction
+const updateFields = {
+name,
+email,
+phone,
+address
+};
+
+// Only add password to update if we have a new hashed value
+if (hashedPassword) {
+updateFields.password = hashedPassword;
+}
+
+const updatedUser = await userModel.findByIdAndUpdate(
+req.user._id,
+updateFields,
+{ new: true }
+);
+    
     res.status(200).send({
       success: true,
-      message: "Profile Updated SUccessfully",
+      message: "Profile Updated Successfully",
       updatedUser,
     });
   } catch (error) {
     console.log(error);
-    res.status(400).send({
+    res.status(500).send({
       success: false,
-      message: "Error WHile Update profile",
-      error,
+      message: "Error While Updating Profile",
+      error: error.message,
     });
   }
 };
@@ -223,7 +293,7 @@ export const getAllOrdersController = async (req, res) => {
       .find({})
       .populate("products", "-photo")
       .populate("buyer", "name")
-      .sort({ createdAt: "-1" });
+      .sort({ createdAt: -1 });
     res.json(orders);
   } catch (error) {
     console.log(error);

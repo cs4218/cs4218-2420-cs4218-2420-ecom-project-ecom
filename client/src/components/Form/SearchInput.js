@@ -2,13 +2,18 @@ import React from "react";
 import { useSearch } from "../../context/search";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 const SearchInput = () => {
   const [values, setValues] = useSearch();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
+    if (values.keyword.trim() === "") {
+      toast.error("Please enter at least one character.", { duration: 800 });
+      return;
+    }
+    try { 
       const { data } = await axios.get(
         `/api/v1/product/search/${values.keyword}`
       );

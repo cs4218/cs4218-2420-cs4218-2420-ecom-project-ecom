@@ -13,6 +13,29 @@ const Register = () => {
   const [DOB, setDOB] = useState("");
   const [answer, setAnswer] = useState("");
   const navigate = useNavigate();
+  const today = new Date().toISOString().split("T")[0];
+  
+  const handlePhoneChange = (e) => {
+    const value = e.target.value;
+    if (/^\d*$/.test(value)) { 
+      if (value.length <= 15) { 
+        setPhone(value);
+      } else {
+        toast.error("Phone number cannot exceed 15 digits");
+      }
+    } else {
+      toast.error("Phone number must contain only numbers");
+    }
+  };
+
+  
+  const handleDOBBlur = (e) => {
+    const inputDate = e.target.value;
+    if (inputDate > today) {
+      toast.error("Date of Birth cannot be in the future");
+      setDOB("");
+    }
+  };
 
   // form function
   const handleSubmit = async (e) => {
@@ -82,7 +105,7 @@ const Register = () => {
             <input
               type="text"
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              onChange={handlePhoneChange}
               className="form-control"
               id="exampleInputPhone1"
               placeholder="Enter Your Phone"
@@ -102,13 +125,15 @@ const Register = () => {
           </div>
           <div className="mb-3">
             <input
-              type="Date"
+              type="date"
               value={DOB}
               onChange={(e) => setDOB(e.target.value)}
+              onBlur={handleDOBBlur}
               className="form-control"
               id="exampleInputDOB1"
               placeholder="Enter Your DOB"
               required
+              max = {today}
             />
           </div>
           <div className="mb-3">

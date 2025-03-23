@@ -13,6 +13,7 @@ const Profile = () => {
   const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
+  const [errors, setErrors] = useState({});
 
   //get user data
   useEffect(() => {
@@ -23,30 +24,92 @@ const Profile = () => {
     setAddress(address);
   }, [auth?.user]);
 
-  // form function
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate all fields directly in handleSubmit
+    let tempErrors = {};
+    let isValid = true;
+  
+    if (!name || name.trim() === '') {
+      tempErrors.name = "Name is required";
+      isValid = false;
+    }
+  
+    if (!email || email.trim() === '') {
+      tempErrors.email = "Email is required";
+      isValid = false;
+    }
+  
+    // Password can be empty (meaning no change), but if provided must be at least 6 chars
+    if (password !== undefined && password !== "" && password.length < 6) {
+      tempErrors.password = "Password must be at least 6 characters long";
+      isValid = false;
+    }
+  
+    if (!phone || phone.trim() === '') {
+      tempErrors.phone = "Phone number is required";
+      isValid = false;
+    }
+  
+    if (!address || address.trim() === '') {
+      tempErrors.address = "Address is required";
+      isValid = false;
+    }
+  
+    // Update the errors state
+    setErrors(tempErrors);
+    
+    // If validation fails, show toast messages and return
+    if (!isValid) {
+      // Show a toast for each error message
+      Object.values(tempErrors).forEach(errorMsg => {
+        toast.error(errorMsg, { 
+          duration: 4000,  // Duration in milliseconds
+          position: 'top-center',
+          // Use different IDs to ensure multiple toasts display simultaneously
+          id: `error-${Math.random()}`,
+        });
+      });
+      
+      return;
+    }
+    
+    // Continue with form submission
     try {
       const { data } = await axios.put("/api/v1/auth/profile", {
         name,
         email,
-        password,
+        password: password || undefined, // Only send password if it has a value
         phone,
         address,
       });
-      if (data?.errro) {
-        toast.error(data?.error);
-      } else {
+      
+      if (data?.success) {
+        // Update auth context with the new user data
         setAuth({ ...auth, user: data?.updatedUser });
+        
+        // Update localStorage
         let ls = localStorage.getItem("auth");
         ls = JSON.parse(ls);
         ls.user = data.updatedUser;
         localStorage.setItem("auth", JSON.stringify(ls));
-        toast.success("Profile Updated Successfully");
+        
+        // Reset password field after successful update
+        setPassword("");
+        
+        toast.success(data?.message || "Profile Updated Successfully");
+      } else {
+        // Handle error response from server
+        toast.error(data?.message || "Update failed");
       }
     } catch (error) {
       console.log(error);
-      toast.error("Something went wrong");
+      if (error.response && error.response.data) {
+        toast.error(error.response.data.message || "Something went wrong");
+      } else {
+        toast.error("Something went wrong");
+      }
     }
   };
   return (
