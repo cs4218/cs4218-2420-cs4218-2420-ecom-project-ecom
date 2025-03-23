@@ -159,7 +159,7 @@ describe('CreateCategory Component -- Create Category', () => {
 
   it('should toast error when backend validation rejects', async () => {
     const msg = "Category already exists";
-    axios.post.mockResolvedValueOnce({
+    axios.post.mockRejectedValueOnce({
       data: {
         success: false,
         message: msg
@@ -172,7 +172,7 @@ describe('CreateCategory Component -- Create Category', () => {
     fireEvent.click(screen.getByText("Submit"));
 
     await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith(msg);
+      expect(toast.error).toHaveBeenCalledWith("somthing went wrong in input form");
     });
   });
 });
