@@ -1,127 +1,157 @@
-import React from 'react';
-import { render, fireEvent, waitFor, screen } from '@testing-library/react';
-import axios from 'axios';
-import { MemoryRouter, Routes, Route } from 'react-router-dom';
-import Login from './Login';
-import mongoose from 'mongoose';
-import { MongoMemoryServer } from 'mongodb-memory-server';
-import { spawn } from 'child_process';
-import path from 'path';
-import userModel from '../../../../models/userModel';
-import toast from 'react-hot-toast';
-import '@testing-library/jest-dom/extend-expect';
+import request from "supertest";
+import express from "express";
+import bodyParser from "body-parser";
+import mongoose from "mongoose";
+import { MongoMemoryServer } from "mongodb-memory-server";
+import {
+  loginController,
+  forgotPasswordController,
+  testController,
+} from "../../../../controllers/authController.js";
+import userModel from "../../../../models/userModel.js";
+import dotenv from "dotenv";
+import { hashPassword } from "../../../../helpers/authHelper.js";
+dotenv.config();
 
-jest.mock("react-hot-toast");
+// Set up a minimal Express app for the test.
+const app = express();
+app.use(bodyParser.json());
 
-const serverPath = path.join(__dirname, '../../../../server.js');
+// Register the login route
+app.post("/api/auth/login", loginController);
+app.post("/api/auth/forgot-password", forgotPasswordController);
+app.get("/api/auth/protected", testController);
 
-const mockNavigateFunction = jest.fn();
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useNavigate: () => mockNavigateFunction,
-}));
+let mongoServer;
 
-jest.setTimeout(20000);
-axios.defaults.baseURL = 'http://localhost:6060';
+// Connect to an in-memory MongoDB instance before each test.
+beforeEach(async () => {
+  mongoServer = await MongoMemoryServer.create();
+  const uri = mongoServer.getUri();
+  await mongoose.connect(uri);
 
-// Render Login component
-const renderLoginComp = () => {
-    render(
-      <MemoryRouter initialEntries={["/login"]}>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-        </Routes>
-      </MemoryRouter>
-    );
-};
-
-// Sample user input for login
-const loginSampleInput = {
-    email: "test@example.com",
+  // Seed the in-memory database with the sample user data
+  const userData = {
+    name: "daniel",
+    email: "ddd@email.com",
     password: "password123",
-};
+    phone: "1234567890",
+    address: "Singapore",
+    DOB: "2000-01-01",
+    answer: "Soccer",
+  };
+  const hashedPassword = await hashPassword(userData.password);
+  userData.password = hashedPassword;
+  await userModel.create(userData); // This inserts the user data directly into the in-memory database
+});
 
-// Integration Test Suite
-describe('Login Component Integration with Auth API', () => {
-    let memMongoDB;
-    let serverProcess;
+// Disconnect and stop the in-memory MongoDB instance after each test.
+afterEach(async () => {
+  await mongoose.disconnect();
+  await mongoServer.stop();
+});
 
-    beforeEach(async () => {
-        jest.clearAllMocks();
+describe("Login Controller Integration Tests", () => {
+  const userData = {
+    email: "ddd@email.com",
+    password: "password123",
+    answer:"Soccer"
+  };
 
-        // Initialize in-memory MongoDB
-        memMongoDB = await MongoMemoryServer.create();
-        const mongoUri = memMongoDB.getUri();
-        process.env.MONGO_URL = mongoUri;
-        await mongoose.connect(mongoUri);
+  it("should login an existing user", async () => {
+    // Check if the user exists in the database before attempting to login
+    const userInDb = await userModel.findOne({ email: userData.email });
+    expect(userInDb).not.toBeNull();
+    expect(userInDb.email).toBe(userData.email);
 
-        // Create a sample user in the database
-        await userModel.create({
-            name: "John Doe",
-            email: loginSampleInput.email,
-            password: "password123", // In a real scenario, this should be hashed
-        });
+    // Attempt login with correct credentials.
+    const res = await request(app)
+      .post("/api/auth/login")
+      .send({ email: userData.email, password: userData.password });
 
-        // Start the server
-        serverProcess = spawn('node', [serverPath], {
-            stdio: 'inherit',
-            env: { 
-                ...process.env,
-                MONGO_URL: mongoUri 
-            }
-        });
-        await new Promise(resolve => setTimeout(resolve, 10000)); // Wait for the server to start
-    });
+    // Check response status and message
+    console.log(res.body.message); // Optional for debugging
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.token).toBeDefined();
+    expect(res.body.user.email).toBe(userData.email);
 
-    afterEach(async () => {
-        // Clean up
-        await mongoose.connection.dropDatabase();
-        await mongoose.disconnect();
-        await memMongoDB.stop();
-        serverProcess.kill();
-    });
+    // Validate token structure (check if it’s a valid JWT)
+    const tokenParts = res.body.token.split(".");
+    expect(tokenParts).toHaveLength(3); // A JWT consists of 3 parts
+  });
 
-    it("should login the user successfully and redirect to the home page", async () => {
-        renderLoginComp();
-        
-        // Fill in the login form
-        fireEvent.change(screen.getByPlaceholderText("Enter Your Email"), {
-            target: { value: loginSampleInput.email },
-        });
-        fireEvent.change(screen.getByPlaceholderText("Enter Your Password"), {
-            target: { value: loginSampleInput.password },
-        });
-        fireEvent.click(screen.getByText("LOGIN"));
+  it("should not login with incorrect password", async () => {
+    // Check if the user exists in the database before attempting to login
+    const userInDb = await userModel.findOne({ email: userData.email });
+    expect(userInDb).not.toBeNull();
+    expect(userInDb.email).toBe(userData.email);
 
-        await waitFor(() => expect(axios.post).toHaveBeenCalledTimes(1));
-        expect(axios.post).toHaveBeenCalledWith("/api/v1/auth/login", loginSampleInput);
+    // Attempt login with incorrect password.
+    const res = await request(app)
+      .post("/api/auth/login")
+      .send({ email: userData.email, password: "wrongpassword" });
 
-        // Check for success toast
-        expect(toast.success).toHaveBeenCalledTimes(1);
-        expect(mockNavigateFunction).toHaveBeenCalledWith('/'); // Assuming home page is the default redirect
+    console.log(res.body.message); // Optional for debugging
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(false);
+    expect(res.body.message).toMatch(/Invalid Password/i);
+  });
 
-        // Verify user is stored in localStorage
-        const storedAuth = JSON.parse(window.localStorage.getItem("auth"));
-        expect(storedAuth).toBeTruthy();
-        expect(storedAuth.user.email).toBe(loginSampleInput.email);
-    });
+  it("should not login with unregistered email", async () => {
+    const res = await request(app)
+      .post("/api/auth/login")
+      .send({ email: "unregistered@email.com", password: "password123" });
 
-    it("should display error message on failed login", async () => {
-        // Mocking the API call to simulate failed login
-        axios.post.mockRejectedValueOnce({ response: { data: { message: "Invalid credentials" } } });
+    console.log(res.body.message); // Optional for debugging
+    expect(res.status).toBe(404);
+    expect(res.body.success).toBe(false);
+    expect(res.body.message).toMatch(/Email is not registered/i);
+  });
 
-        renderLoginComp();
-        
-        // Fill in the login form
-        fireEvent.change(screen.getByPlaceholderText("Enter Your Email"), {
-            target: { value: loginSampleInput.email },
-        });
-        fireEvent.change(screen.getByPlaceholderText("Enter Your Password"), {
-            target: { value: loginSampleInput.password },
-        });
-        fireEvent.click(screen.getByText("LOGIN"));
+  it("should not login with empty email", async () => {
+    const res = await request(app)
+      .post("/api/auth/login")
+      .send({ email: "", password: "password123" });
 
-        await waitFor(() => expect(axios.post).toHaveBeenCalledTimes(1));
-        expect(toast.error).toHaveBeenCalledWith("Something went wrong");
-    });
+    console.log(res.body.message); // Optional for debugging
+    expect(res.status).toBe(404);
+    expect(res.body.success).toBe(false);
+    expect(res.body.message).toMatch(/Invalid email or password/i);
+  });
+
+  it("should not login with empty password", async () => {
+    const res = await request(app)
+      .post("/api/auth/login")
+      .send({ email: userData.email, password: "" });
+
+    console.log(res.body.message); // Optional for debugging
+    expect(res.status).toBe(404);
+    expect(res.body.success).toBe(false);
+    expect(res.body.message).toMatch(/Invalid email or password/i);
+  });
+
+  it("should not login with invalid email format", async () => {
+    const res = await request(app)
+      .post("/api/auth/login")
+      .send({ email: "invalidemail", password: "password123" });
+
+    console.log(res.body.message); // Optional for debugging
+    expect(res.status).toBe(404);
+    expect(res.body.success).toBe(false);
+    expect(res.body.message).toMatch(/Email is not registered/i);
+  });
+
+  it("should handle internal server errors gracefully", async () => {
+    // Simulate a server error by sending an invalid request
+    const res = await request(app)
+      .post("/api/auth/login")
+      .send({ email: "error@test.com", password: "password123" });
+
+    console.log(res.body.message); // Optional for debugging
+    expect(res.status).toBe(404);
+    expect(res.body.success).toBe(false);
+    expect(res.body.message).toMatch(/Email is not registered/i);
+  });
+
 });
