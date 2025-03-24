@@ -31,16 +31,49 @@ BRAINTREE_PRIVATE_KEY = <Insert your Braintree private key>
 npm run dev
 ```
 
-### Running Unit Tests
+### Running Unit/Integration Tests
 To run an unit test file, run the following command in the root directory.
 ```
 npm test -- <Path to Test File>
 #e.g. npm test -- Register.test.js
 ```
+To run all frontend unit tests, run this command in the root directory.
+```
+npm run test:frontend
+```
+
+To run all backend unit tests, run this command in the root directory.
+```
+npm run test:backend
+```
 
 To run all tests, run this command in the root directory.
 ```
 npm test
+```
+
+> [!NOTE]
+> Some integration tests will spin up a server, please ensure you do not have another server instance running on your device. 
+
+### Running UI Tests
+#### Prerequisites
+1. Update the `.env` file with the `MONGO_URL` of your test database.
+2. Run `npm run dev` to start the local server.
+
+To run an unit test file, run these command in the root directory.
+
+```
+# For playwright test results in HTML format
+npx playwright test <Path to Test File>
+
+# For playwright test results in UI mode
+npx playwright test <Path to Test File> -- ui
+```
+
+To run all UI tests in the `tests` folder, run this command in the root directory.
+```
+# Runs all UI tests and presents playwright test results in UI mode
+npm run test:e2e
 ```
 
 ### CI
