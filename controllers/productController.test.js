@@ -2,7 +2,7 @@
 import mongoose from "mongoose";
 import categoryModel from "../models/categoryModel.js";
 import productModel from '../models/productModel.js';
-import orderModel from '../models/productModel.js';
+import orderModel from '../models/orderModel.js';
 import {
   getSingleProductController,
   productCategoryController,
@@ -888,22 +888,22 @@ describe('getProductController', () => {
 });
 
 //Ivan
-jest.mock('../models/productModel');
-jest.mock('fs');
-jest.mock('slugify');
-jest.mock("braintree", () => ({
-  BraintreeGateway: jest.fn(() => ({
-    clientToken: {
-      generate: jest.fn((_, cb) => cb(null, { clientToken: "mockToken" })),
-    },
-    transaction: {
-      sale: jest.fn((_, cb) => cb(null, { success: true })),
-    },
-  })),
-  Environment: {
-    Sandbox: "sandbox",
-  },
-}));
+// jest.mock('../models/productModel');
+// jest.mock('fs');
+// jest.mock('slugify');
+// jest.mock("braintree", () => ({
+//   BraintreeGateway: jest.fn(() => ({
+//     clientToken: {
+//       generate: jest.fn((_, cb) => cb(null, { clientToken: "mockToken" })),
+//     },
+//     transaction: {
+//       sale: jest.fn((_, cb) => cb(null, { success: true })),
+//     },
+//   })),
+//   Environment: {
+//     Sandbox: "sandbox",
+//   },
+// }));
 
 describe('Product Filter Controller Test', () => {
   let req, res, mockArgs;

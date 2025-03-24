@@ -2,7 +2,7 @@ import { jest } from "@jest/globals";
 import { getOrdersController, updateProfileController, getAllOrdersController, orderStatusController, registerController } from "./authController";
 import userModel from "../models/userModel";
 import orderModel from "../models/orderModel";
-import hashPassword from "../helpers/authHelper";
+import {hashPassword} from "../helpers/authHelper";
 
 jest.mock("../models/userModel.js");
 jest.mock("../models/orderModel.js");
@@ -185,7 +185,7 @@ describe("Get Orders Controller Test", () => {
     expect(res.status).toHaveBeenCalledWith(500);
     expect(res.send).toHaveBeenCalledWith({
       success: false,
-      message: "Error While Geting Orders",
+      message: "Error While Getting Orders",
       error: Error("Testing Error"),
     })
   });
@@ -233,7 +233,7 @@ describe("Get All Orders Controller Test", () => {
     expect(res.status).toHaveBeenCalledWith(500);
     expect(res.send).toHaveBeenCalledWith({
       success: false,
-      message: "Error While Geting Orders",
+      message: "Error While Getting Orders",
       error: Error("Testing Error"),
     })
   });

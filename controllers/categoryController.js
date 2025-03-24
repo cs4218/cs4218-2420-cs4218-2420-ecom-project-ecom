@@ -8,7 +8,7 @@ export const createCategoryController = async (req, res) => {
     }
     const existingCategory = await categoryModel.findOne({ name: name.trim() });
     if (existingCategory) {
-      return res.status(200).send({
+      return res.status(400).send({
         success: false,
         message: "Category Already Exisits",
       });
@@ -38,6 +38,7 @@ export const updateCategoryController = async (req, res) => {
     const { name } = req.body;
     if (!name.trim()) {
       return res.status(400).send({
+        success: false,
         message: "Name is required"
       });
     }
@@ -63,6 +64,12 @@ export const updateCategoryController = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
+    if (error.code && error.code === 11000) {
+      return res.status(400).send({
+        success: false,
+        message: "Category already exists"
+      })
+    }
     res.status(500).send({
       success: false,
       error,
