@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import { useNavigate, useParams } from "react-router-dom";
 import AdminMenu from "./../../components/AdminMenu";
 import Layout from "./../../components/Layout";
+import { useCart } from "../../context/cart";
 const { Option } = Select;
 
 const UpdateProduct = () => {
@@ -19,6 +20,7 @@ const UpdateProduct = () => {
   const [shipping, setShipping] = useState("");
   const [photo, setPhoto] = useState("");
   const [id, setId] = useState("");
+  const [cart, setCart] = useCart();
 
   //get single product
   const getSingleProduct = async () => {
@@ -74,7 +76,6 @@ const UpdateProduct = () => {
     return null; // No validation errors
   };
 
-  //create product function
   const handleUpdate = async (e) => {
     e.preventDefault();
     try {
@@ -83,6 +84,7 @@ const UpdateProduct = () => {
         toast.error(errorMessage);
         return;
       }
+  
       const productData = new FormData();
       productData.append("name", name);
       productData.append("description", description);
@@ -99,6 +101,18 @@ const UpdateProduct = () => {
         toast.error(data?.message);
       } else {
         toast.success("Product Updated Successfully");
+  
+        let cart = JSON.parse(localStorage.getItem("cart") || "[]");
+
+        cart = cart.map((item) => {
+          if (item._id === id) {
+            return { ...item, ...data.products };
+          }
+          return item;
+        });
+
+        setCart([...cart]); 
+        localStorage.setItem("cart", JSON.stringify(cart));
         navigate("/dashboard/admin/products");
       }
     } catch (error) {
@@ -117,6 +131,10 @@ const UpdateProduct = () => {
       );
       if (data.success) {
         toast.success("Product Deleted Successfully");
+        let cart = JSON.parse(localStorage.getItem("cart") || "[]");
+        cart = cart.filter(item => item._id !== id); 
+        localStorage.setItem("cart", JSON.stringify(cart)); 
+        setCart(cart);
         navigate("/dashboard/admin/products");
       } else {
         toast.error("Something went wrong");
