@@ -62,7 +62,17 @@ const CartPage = () => {
   const handlePayment = async () => {
     try {
       setLoading(true);
-      const { nonce } = await instance.requestPaymentMethod();
+      let nonce;
+      try {
+        const paymentMethod = await instance.requestPaymentMethod();
+        nonce = paymentMethod.nonce;
+      } catch (error) {
+        console.error("Failed to get payment nonce:", error);
+        toast.error("Failed to get payment method. Please try again.");
+        setLoading(false);
+        return;
+      }
+
       const { data } = await axios.post("/api/v1/product/braintree/payment", {
         nonce,
         cart,
